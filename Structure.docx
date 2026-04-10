@@ -1,0 +1,156 @@
+evalify-ai/
+│
+├── client/
+│   ├── public/
+│   │   └── favicon.ico
+│   │
+│   ├── src/
+│   │   ├── pages/
+│   │   │   ├── Login.jsx
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── CreateExam.jsx
+│   │   │   ├── ExamDetail.jsx
+│   │   │   ├── EvaluationProgress.jsx
+│   │   │   └── Results.jsx
+│   │   │
+│   │   ├── components/
+│   │   │   ├── ui/
+│   │   │   │   ├── Button.jsx
+│   │   │   │   ├── Card.jsx
+│   │   │   │   ├── Modal.jsx
+│   │   │   │   ├── Spinner.jsx
+│   │   │   │   └── Input.jsx
+│   │   │   │
+│   │   │   ├── layout/
+│   │   │   │   ├── Navbar.jsx
+│   │   │   │   ├── Sidebar.jsx
+│   │   │   │   └── Footer.jsx
+│   │   │   │
+│   │   │   ├── upload/
+│   │   │   │   ├── FileDropzone.jsx
+│   │   │   │   ├── PdfPreview.jsx
+│   │   │   │   └── UploadProgress.jsx
+│   │   │   │
+│   │   │   ├── evaluation/
+│   │   │   │   ├── ProgressTracker.jsx
+│   │   │   │   ├── ScoreCard.jsx
+│   │   │   │   └── StatusBadge.jsx
+│   │   │   │
+│   │   │   └── results/
+│   │   │       ├── FeedbackSheet.jsx
+│   │   │       ├── MarksTable.jsx
+│   │   │       └── ExportButton.jsx
+│   │   │
+│   │   ├── hooks/
+│   │   │   ├── useAuth.js
+│   │   │   ├── useExam.js
+│   │   │   ├── useUpload.js
+│   │   │   └── useEvaluation.js
+│   │   │
+│   │   ├── store/
+│   │   │   ├── authStore.js
+│   │   │   ├── examStore.js
+│   │   │   └── evaluationStore.js
+│   │   │
+│   │   ├── services/
+│   │   │   ├── api.js
+│   │   │   ├── auth.service.js
+│   │   │   ├── exam.service.js
+│   │   │   ├── evaluation.service.js
+│   │   │   └── results.service.js
+│   │   │
+│   │   ├── utils/
+│   │   │   ├── format.js
+│   │   │   ├── fileHelpers.js
+│   │   │   └── constants.js
+│   │   │
+│   │   ├── types/
+│   │   │   └── index.js
+│   │   │
+│   │   ├── router/
+│   │   │   └── index.jsx
+│   │   │
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   │
+│   ├── tests/
+│   │   ├── unit/
+│   │   │   ├── components/
+│   │   │   ├── hooks/
+│   │   │   └── store/
+│   │   ├── integration/
+│   │   │   └── services/
+│   │   └── setup.js
+│   │
+│   ├── .env
+│   ├── index.html
+│   ├── vite.config.js
+│   └── package.json
+│
+├── server/
+│   ├── routes/
+│   │   ├── index.js
+│   │   ├── auth.routes.js
+│   │   ├── exam.routes.js
+│   │   ├── evaluate.routes.js
+│   │   └── results.routes.js
+│   │
+│   ├── controllers/
+│   │   ├── auth.controller.js
+│   │   ├── exam.controller.js
+│   │   ├── evaluate.controller.js
+│   │   └── results.controller.js
+│   │
+│   ├── services/
+│   │   ├── claudeService.js
+│   │   ├── pdfService.js
+│   │   ├── evaluationService.js
+│   │   └── exportService.js
+│   │
+│   ├── middleware/
+│   │   ├── auth.js
+│   │   ├── upload.js
+│   │   └── errorHandler.js
+│   │
+│   ├── config/
+│   │   ├── supabase.js
+│   │   ├── env.js
+│   │   └── claude.js
+│   │
+│   ├── models/
+│   │   ├── exam.model.js
+│   │   ├── result.model.js
+│   │   ├── student.model.js
+│   │   └── evaluation.model.js
+│   │
+│   ├── utils/
+│   │   ├── promptBuilder.js
+│   │   ├── parser.js
+│   │   └── logger.js
+│   │
+│   ├── tests/
+│   │   ├── unit/
+│   │   │   ├── services/
+│   │   │   └── utils/
+│   │   ├── integration/
+│   │   │   └── routes/
+│   │   └── setup.js
+│   │
+│   ├── uploads/
+│   │
+│   ├── app.js
+│   └── server.js
+│
+├── e2e/
+│   ├── upload.spec.js
+│   ├── evaluation.spec.js
+│   └── export.spec.js
+│
+├── supabase/
+│   ├── migrations/
+│   └── seed/
+│
+├── .env
+├── .gitignore
+├── package.json
+└── README.md

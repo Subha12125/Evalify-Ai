@@ -1,5 +1,3 @@
-const chalk = require('chalk') || null;
-
 const LOG_LEVELS = { error: 0, warn: 1, info: 2, debug: 3 };
 const currentLevel = LOG_LEVELS[process.env.LOG_LEVEL || 'info'];
 

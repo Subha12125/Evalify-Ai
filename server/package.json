@@ -1,16 +1,29 @@
 {
-  "name": "server",
+  "name": "evalify-ai-server",
   "version": "1.0.0",
-  "description": "Backend server for Evalify Ai",
-  "license": "ISC",
+  "description": "Backend server for Evalify AI - AI-Powered Exam Evaluator",
+  "license": "MIT",
   "author": "",
   "type": "commonjs",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --require ./tests/setup.js --test"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@supabase/supabase-js": "^2.49.4",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "csv-writer": "^1.6.0",
+    "dotenv": "^16.5.0",
     "express": "^5.2.1",
-    "prettier": "^3.8.2"
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.2",
+    "pdf-parse": "^1.1.1"
   }
 }

@@ -4,6 +4,12 @@ const supabase = require('../config/supabase');
 const { JWT_SECRET } = require('../config/env');
 const logger = require('../utils/logger');
 
+
+// 1. Register
+// 2. Login
+// 3. Get Profile (protected)
+
+
 /**
  * POST /api/auth/register
  */
@@ -16,6 +22,7 @@ async function register(req, res, next) {
     }
 
     // Check if user exists
+    // from user table, select id where email = email, single result
     const { data: existing } = await supabase
       .from('users')
       .select('id')
@@ -23,14 +30,18 @@ async function register(req, res, next) {
       .single();
 
     if (existing) {
-      return res.status(409).json({ error: 'Email already registered' });
+      return res.status(409).json({ error: '! Email already registered !' });
     }
 
     // Hash password
+    // Generate salt and hash the password using bcrypt
     const salt = await bcrypt.genSalt(12);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user
+    
+    // Create user in database and return the new user data (id, email, name, role) without password
+    // Insert into users table with email, hashed password, name, role, and created_at timestamp. Return id, email, name, role as single result
+
     const { data: user, error } = await supabase
       .from('users')
       .insert({

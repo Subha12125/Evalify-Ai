@@ -1,23 +1,40 @@
 import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
 
   return (
     <div className="bg-background text-on-surface flex min-h-screen relative overflow-x-hidden">
-      {/* Sidebar - responsive behavior */}
-      <div className={`fixed inset-0 z-50 bg-black/50 transition-opacity lg:hidden ${sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setSidebarOpen(false)}></div>
+      {/* Mobile overlay */}
+      <div 
+        className={`fixed inset-0 z-50 bg-black/50 transition-opacity lg:hidden ${sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} 
+        onClick={() => setSidebarOpen(false)}
+      />
       
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       
       <main className="lg:ml-64 flex-1 min-h-screen relative transition-all duration-300">
         <Navbar onMenuClick={() => setSidebarOpen(true)} />
         <div className="pt-24 px-4 sm:px-8 pb-12 w-full overflow-x-hidden">
-          <Outlet />
+          <div key={location.pathname} className="animate-page-in">
+            <Outlet />
+          </div>
         </div>
+        {/* Footer */}
+        <footer className="lg:ml-0 border-t border-outline-variant/10 bg-surface-container-lowest/50 backdrop-blur-sm">
+          <div className="px-4 sm:px-8 py-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p className="text-[10px] text-outline font-bold uppercase tracking-widest">© 2026 Evalify AI • All rights reserved</p>
+            <div className="flex gap-6">
+              <a href="#" className="text-[10px] text-outline hover:text-primary font-bold uppercase tracking-widest transition-colors">Privacy</a>
+              <a href="#" className="text-[10px] text-outline hover:text-primary font-bold uppercase tracking-widest transition-colors">Terms</a>
+              <a href="#" className="text-[10px] text-outline hover:text-primary font-bold uppercase tracking-widest transition-colors">Support</a>
+            </div>
+          </div>
+        </footer>
       </main>
     </div>
   );

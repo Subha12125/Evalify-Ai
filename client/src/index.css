@@ -9,10 +9,8 @@
   font-family: 'Inter', sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
-  color-scheme: light dark;
+  color-scheme: light;
   background-color: #f7f9fb;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -45,22 +43,56 @@ h1, h2, h3, h4, h5, h6, .font-headline {
 }
 
 .atmospheric-shadow {
-  box-shadow: 0 12px 40px rgba(25, 28, 30, 0.06);
+  box-shadow: 0 1px 3px rgba(25, 28, 30, 0.04), 0 8px 32px rgba(25, 28, 30, 0.06);
 }
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 #root {
   min-height: 100vh;
 }
 
+/* Page transition */
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-page-in {
+  animation: page-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Toast animation */
 @keyframes toast-slide-up {
   from { transform: translateY(100%); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
 
 .animate-slide-up {
-  animation: toast-slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: toast-slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Skeleton loading shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #e6e8ea 25%, #f2f4f6 50%, #e6e8ea 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
 }

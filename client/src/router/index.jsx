@@ -8,6 +8,7 @@ import Settings from '../pages/Settings';
 import Pricing from '../pages/Pricing';
 import EvaluationProgress from '../pages/EvaluationProgress';
 import ExamDetail from '../pages/ExamDetail';
+import NotFound from '../pages/NotFound';
 import Layout from '../components/layout/Layout';
 
 export const router = createBrowserRouter([
@@ -22,38 +23,18 @@ export const router = createBrowserRouter([
   {
     element: <Layout />,
     children: [
-      {
-        path: '/dashboard',
-        element: <Dashboard />,
-      },
-      {
-        path: '/create-exam',
-        element: <CreateExam />,
-      },
-      {
-        path: '/results',
-        element: <Results />,
-      },
-      {
-        path: '/exams',
-        element: <Exams />,
-      },
-      {
-        path: '/settings',
-        element: <Settings />,
-      },
-      {
-        path: '/pricing',
-        element: <Pricing />,
-      },
-      {
-        path: '/evaluation-progress',
-        element: <EvaluationProgress />,
-      },
-      {
-        path: '/exams/:id',
-        element: <ExamDetail />,
-      },
+      { path: '/dashboard', element: <Dashboard /> },
+      { path: '/create-exam', element: <CreateExam /> },
+      { path: '/results', element: <Results /> },
+      { path: '/exams', element: <Exams /> },
+      { path: '/exams/:id', element: <ExamDetail /> },
+      { path: '/settings', element: <Settings /> },
+      { path: '/pricing', element: <Pricing /> },
+      { path: '/evaluation-progress', element: <EvaluationProgress /> },
     ],
+  },
+  {
+    path: '*',
+    element: <NotFound />,
   },
 ]);

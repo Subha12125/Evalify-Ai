@@ -1,16 +1,47 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
 
 const CreateExam = () => {
   const navigate = useNavigate();
   const { addToast } = useToast();
+  
+  const [files, setFiles] = useState([]);
+  
+  const questionPaperRef = useRef(null);
+  const rubricRef = useRef(null);
+  const answerSheetsRef = useRef(null);
 
   const handleStartEvaluation = () => {
+    if (files.length === 0) {
+      addToast('Please upload at least one document to begin.', 'error');
+      return;
+    }
     addToast('AI engines initializing. Processing documents...');
     setTimeout(() => {
       navigate('/evaluation-progress');
     }, 1500);
+  };
+
+  const handleFileSelect = (e, type) => {
+    const selectedFiles = Array.from(e.target.files);
+    if (selectedFiles.length === 0) return;
+    
+    const newFiles = selectedFiles.map(file => ({
+      id: Math.random().toString(36).substr(2, 9),
+      name: file.name,
+      size: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
+      type: type,
+      originalFile: file
+    }));
+    
+    setFiles(prev => [...prev, ...newFiles]);
+    addToast(`Added ${selectedFiles.length} file(s) to queue`);
+  };
+
+  const removeFile = (id) => {
+    setFiles(prev => prev.filter(f => f.id !== id));
+    addToast('Removed file from queue');
   };
 
   return (
@@ -36,9 +67,10 @@ const CreateExam = () => {
         <div className="lg:col-span-8 space-y-8 order-2 lg:order-1">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div 
-              onClick={() => addToast('Opening file browser for Question Paper...')}
-              className="bg-white rounded-xl p-6 sm:p-8 atmospheric-shadow flex flex-col items-center justify-center border-2 border-dashed border-outline-variant/20 hover:border-primary/40 transition-all group cursor-pointer min-h-[240px] sm:h-64 shadow-sm"
+              onClick={() => questionPaperRef.current?.click()}
+              className="bg-white rounded-xl p-6 sm:p-8 atmospheric-shadow flex flex-col items-center justify-center border-2 border-dashed border-outline-variant/20 hover:border-primary/40 transition-all group cursor-pointer min-h-[240px] sm:h-64 shadow-sm relative overflow-hidden"
             >
+              <input type="file" ref={questionPaperRef} onChange={(e) => handleFileSelect(e, 'question_paper')} className="hidden" accept=".pdf,.docx,.doc" />
               <div className="w-12 sm:w-16 h-12 sm:h-16 rounded-full bg-primary/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <span className="material-symbols-outlined text-primary text-2xl sm:text-3xl">quiz</span>
               </div>
@@ -48,9 +80,10 @@ const CreateExam = () => {
             </div>
 
             <div 
-              onClick={() => addToast('Opening file browser for Grading Rubric...')}
-              className="bg-white rounded-xl p-6 sm:p-8 atmospheric-shadow flex flex-col items-center justify-center border-2 border-dashed border-outline-variant/20 hover:border-secondary/40 transition-all group cursor-pointer min-h-[240px] sm:h-64 shadow-sm"
+              onClick={() => rubricRef.current?.click()}
+              className="bg-white rounded-xl p-6 sm:p-8 atmospheric-shadow flex flex-col items-center justify-center border-2 border-dashed border-outline-variant/20 hover:border-secondary/40 transition-all group cursor-pointer min-h-[240px] sm:h-64 shadow-sm relative overflow-hidden"
             >
+              <input type="file" ref={rubricRef} onChange={(e) => handleFileSelect(e, 'rubric')} className="hidden" accept=".pdf,.docx,.doc,.csv,.xlsx" />
               <div className="w-12 sm:w-16 h-12 sm:h-16 rounded-full bg-secondary/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <span className="material-symbols-outlined text-secondary text-2xl sm:text-3xl">rule</span>
               </div>
@@ -60,16 +93,17 @@ const CreateExam = () => {
             </div>
 
             <div 
-              onClick={() => addToast('Opening folder browser...')}
+              onClick={() => answerSheetsRef.current?.click()}
               className="sm:col-span-2 bg-white rounded-xl p-6 sm:p-10 atmospheric-shadow border-2 border-dashed border-outline-variant/20 hover:border-primary/40 transition-all group cursor-pointer flex flex-col items-center relative overflow-hidden text-center min-h-[300px] shadow-sm"
             >
+              <input type="file" ref={answerSheetsRef} onChange={(e) => handleFileSelect(e, 'answer_sheet')} className="hidden" accept="image/*,.pdf" multiple webkitdirectory="false" />
               <div className="absolute -right-20 -top-20 w-48 sm:w-64 h-48 sm:h-64 bg-primary/5 rounded-full blur-3xl"></div>
-              <div className="w-16 sm:w-20 h-16 sm:h-20 rounded-2xl bg-primary flex items-center justify-center mb-6 shadow-lg shadow-primary/20 group-hover:-translate-y-1 transition-transform">
+              <div className="w-16 sm:w-20 h-16 sm:h-20 rounded-2xl bg-primary flex items-center justify-center mb-6 shadow-lg shadow-primary/20 group-hover:-translate-y-1 transition-transform relative z-10">
                 <span className="material-symbols-outlined text-white text-3xl sm:text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>file_upload</span>
               </div>
-              <h3 className="font-headline font-extrabold text-xl sm:text-2xl mb-2 text-on-surface">Student Answer Sheets</h3>
-              <p className="text-xs sm:text-sm text-on-surface-variant text-center max-w-md">Drag and drop multiple scanned response sheets. Evalify AI will automatically separate individual student IDs.</p>
-              <button className="mt-8 px-8 py-3 bg-primary/5 text-primary font-bold rounded-lg group-hover:bg-primary group-hover:text-white transition-all">Choose Folder</button>
+              <h3 className="font-headline font-extrabold text-xl sm:text-2xl mb-2 text-on-surface relative z-10">Student Answer Sheets</h3>
+              <p className="text-xs sm:text-sm text-on-surface-variant text-center max-w-md relative z-10">Drag and drop multiple scanned response sheets. Evalify AI will automatically separate individual student IDs.</p>
+              <button className="mt-8 px-8 py-3 bg-primary/5 text-primary font-bold rounded-lg group-hover:bg-primary group-hover:text-white transition-all relative z-10">Choose Files</button>
             </div>
           </div>
 
@@ -84,7 +118,7 @@ const CreateExam = () => {
             </button>
             <button 
               onClick={handleStartEvaluation}
-              className="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-primary to-primary-container text-white rounded-xl font-headline font-bold text-lg shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all order-1 sm:order-2"
+              className={`w-full sm:w-auto px-10 py-4 rounded-xl font-headline font-bold text-lg shadow-xl shadow-primary/20 transition-all order-1 sm:order-2 ${files.length > 0 ? 'bg-gradient-to-r from-primary to-primary-container text-white hover:scale-[1.02] active:scale-95' : 'bg-surface-container-high text-on-surface-variant pointer-events-none'}`}
             >
               Start Evaluation
             </button>
@@ -96,20 +130,29 @@ const CreateExam = () => {
           <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 atmospheric-shadow sticky top-28 border border-outline-variant/10">
             <div className="flex justify-between items-center mb-6">
               <h4 className="font-headline font-bold text-on-surface text-sm sm:text-base">Upload Queue</h4>
-              <span className="bg-primary/10 text-primary text-[9px] sm:text-[10px] font-bold px-2 py-1 rounded">3 FILES READY</span>
+              <span className="bg-primary/10 text-primary text-[9px] sm:text-[10px] font-bold px-2 py-1 rounded">{files.length} FILES READY</span>
             </div>
             
-            <div className="space-y-4 max-h-[300px] lg:max-h-none overflow-y-auto pr-2 no-scrollbar">
-              <div className="bg-surface-container-low p-4 rounded-xl flex items-center gap-4 group hover:bg-surface-container-high transition-colors">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-lg flex items-center justify-center shadow-sm flex-shrink-0 border border-outline-variant/10">
-                  <span className="material-symbols-outlined text-primary text-sm sm:text-base">description</span>
+            <div className="space-y-4 max-h-[300px] lg:max-h-[500px] overflow-y-auto pr-2 no-scrollbar">
+              {files.length > 0 ? files.map(file => (
+                <div key={file.id} className="bg-surface-container-low p-4 rounded-xl flex items-center gap-4 group hover:bg-surface-container-high transition-colors animate-page-in">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-lg flex items-center justify-center shadow-sm flex-shrink-0 border border-outline-variant/10">
+                    <span className="material-symbols-outlined text-primary text-sm sm:text-base">
+                      {file.type === 'question_paper' ? 'quiz' : file.type === 'rubric' ? 'rule' : 'description'}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs sm:text-sm font-bold text-on-surface truncate">{file.name}</p>
+                    <p className="text-[9px] sm:text-[10px] text-on-surface-variant font-bold">{file.size}</p>
+                  </div>
+                  <button onClick={() => removeFile(file.id)} className="material-symbols-outlined text-outline hover:text-error cursor-pointer transition-colors text-lg">delete</button>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs sm:text-sm font-bold text-on-surface truncate">Final_Physics_Exam.pdf</p>
-                  <p className="text-[9px] sm:text-[10px] text-on-surface-variant font-bold">1.2 MB</p>
+              )) : (
+                <div className="text-center py-12 border-2 border-dashed border-outline-variant/20 rounded-xl">
+                  <span className="material-symbols-outlined text-outline text-3xl mb-2">cloud_upload</span>
+                  <p className="text-xs text-on-surface-variant">Queue is empty</p>
                 </div>
-                <button onClick={() => addToast('Removing material from queue...', 'error')} className="material-symbols-outlined text-outline group-hover:text-error cursor-pointer transition-colors text-lg">delete</button>
-              </div>
+              )}
             </div>
 
             <div className="mt-8 p-4 bg-secondary/5 rounded-xl border border-secondary/10 relative">

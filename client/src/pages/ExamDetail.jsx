@@ -6,7 +6,7 @@ const ExamDetail = () => {
       {/* Header Section */}
       <section className="mb-10 sm:mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
-          <nav className="flex mb-4 items-center text-[10px] sm:text-xs text-outline uppercase tracking-widest font-bold gap-2">
+          <nav className="flex flex-wrap mb-4 items-center text-[10px] sm:text-xs text-outline uppercase tracking-widest font-bold gap-2">
             <span>Exams</span>
             <span className="material-symbols-outlined text-[10px]">chevron_right</span>
             <span className="truncate max-w-[100px] sm:max-w-none">Fall 2023 Midterm</span>

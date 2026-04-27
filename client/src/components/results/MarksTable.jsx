@@ -4,7 +4,7 @@ import StatusBadge from '../evaluation/StatusBadge';
 const MarksTable = ({ data, onRowClick }) => {
   return (
     <div className="w-full overflow-x-auto no-scrollbar">
-      <table className="w-full border-collapse text-left">
+      <table className="w-full border-collapse text-left min-w-[800px]">
         <thead>
           <tr className="border-b border-outline-variant/10 text-[10px] font-black uppercase tracking-widest text-outline">
             <th className="px-4 py-4 font-black">Student Name</th>

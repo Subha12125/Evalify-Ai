@@ -31,7 +31,7 @@ const Modal = ({
         relative w-full ${maxWidth} bg-white rounded-3xl shadow-2xl overflow-hidden
         animate-page-in
       `}>
-        <div className="px-8 py-6 border-b border-outline-variant/10 flex justify-between items-center">
+        <div className="px-4 sm:px-8 py-6 border-b border-outline-variant/10 flex justify-between items-center">
           <h2 className="text-xl font-extrabold font-headline text-on-surface">{title}</h2>
           <button 
             onClick={onClose}
@@ -41,12 +41,12 @@ const Modal = ({
           </button>
         </div>
         
-        <div className="px-8 py-8 overflow-y-auto max-h-[70vh]">
+        <div className="px-4 sm:px-8 py-8 overflow-y-auto max-h-[70vh]">
           {children}
         </div>
 
         {footer && (
-          <div className="px-8 py-6 border-t border-outline-variant/10 bg-surface-container-lowest/50 flex justify-end gap-3">
+          <div className="px-4 sm:px-8 py-6 border-t border-outline-variant/10 bg-surface-container-lowest/50 flex justify-end gap-3">
             {footer}
           </div>
         )}

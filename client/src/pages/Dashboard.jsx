@@ -1,8 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { useExam } from '../hooks/useExam';
+import ScoreCard from '../components/evaluation/ScoreCard';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { exams, loading, fetchExams } = useExam();
+
+  useEffect(() => {
+    fetchExams();
+  }, [fetchExams]);
 
   const recentActivity = [
     { id: 1, name: 'Advanced Algorithms Final', batch: 'CS-2024-A', student: 'John Doe', initials: 'JD', status: 'Completed', statusColor: 'emerald', route: '/exams/1' },
@@ -21,62 +30,15 @@ const Dashboard = () => {
     <div className="min-h-full">
       <div className="mb-10">
         <h1 className="text-3xl sm:text-4xl font-extrabold text-on-surface tracking-tight mb-2 font-headline">Academic Dashboard</h1>
-        <p className="text-on-surface-variant text-sm sm:text-base">Welcome back, Dr. Sterling. Here is your evaluation summary.</p>
+        <p className="text-on-surface-variant text-sm sm:text-base">Welcome back, {user?.name || 'Professor'}. Here is your evaluation summary.</p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
-        <div onClick={() => navigate('/exams')} className="bg-white p-6 rounded-xl atmospheric-shadow flex flex-col justify-between h-36 group hover:bg-primary transition-all duration-300 cursor-pointer border border-outline-variant/10">
-          <div className="flex justify-between items-start">
-            <div className="p-2.5 bg-primary/10 rounded-lg group-hover:bg-white/20">
-              <span className="material-symbols-outlined text-primary group-hover:text-white" style={{ fontVariationSettings: "'FILL' 1" }}>menu_book</span>
-            </div>
-            <span className="text-[9px] font-bold text-primary group-hover:text-white/80 bg-primary/10 group-hover:bg-white/10 px-2 py-0.5 rounded uppercase tracking-wider">Sem 1</span>
-          </div>
-          <div>
-            <p className="text-on-surface-variant group-hover:text-white/70 text-xs font-medium">Total Exams</p>
-            <h3 className="text-3xl font-black group-hover:text-white font-headline">128</h3>
-          </div>
-        </div>
-
-        <div onClick={() => navigate('/results')} className="bg-white p-6 rounded-xl atmospheric-shadow flex flex-col justify-between h-36 group hover:bg-secondary transition-all duration-300 cursor-pointer border border-outline-variant/10">
-          <div className="flex justify-between items-start">
-            <div className="p-2.5 bg-secondary/10 rounded-lg group-hover:bg-white/20">
-              <span className="material-symbols-outlined text-secondary group-hover:text-white" style={{ fontVariationSettings: "'FILL' 1" }}>task_alt</span>
-            </div>
-            <span className="text-[9px] font-bold text-secondary group-hover:text-white/80 bg-secondary/10 group-hover:bg-white/10 px-2 py-0.5 rounded uppercase tracking-wider">+12%</span>
-          </div>
-          <div>
-            <p className="text-on-surface-variant group-hover:text-white/70 text-xs font-medium">Completed</p>
-            <h3 className="text-3xl font-black group-hover:text-white font-headline">842</h3>
-          </div>
-        </div>
-
-        <div onClick={() => navigate('/evaluation-progress')} className="bg-white p-6 rounded-xl atmospheric-shadow flex flex-col justify-between h-36 cursor-pointer hover:border-error/30 transition-all border border-outline-variant/10">
-          <div className="flex justify-between items-start">
-            <div className="p-2.5 bg-error/10 rounded-lg">
-              <span className="material-symbols-outlined text-error" style={{ fontVariationSettings: "'FILL' 1" }}>pending_actions</span>
-            </div>
-            <span className="text-[9px] font-bold text-error bg-error/10 px-2 py-0.5 rounded uppercase tracking-wider">Urgent</span>
-          </div>
-          <div>
-            <p className="text-on-surface-variant text-xs font-medium">Pending</p>
-            <h3 className="text-3xl font-black text-on-surface font-headline">34</h3>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-xl atmospheric-shadow flex flex-col justify-between h-36 border border-outline-variant/10">
-          <div className="flex justify-between items-start">
-            <div className="p-2.5 bg-emerald-100 rounded-lg">
-              <span className="material-symbols-outlined text-emerald-600" style={{ fontVariationSettings: "'FILL' 1" }}>school</span>
-            </div>
-            <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded uppercase tracking-wider">Active</span>
-          </div>
-          <div>
-            <p className="text-on-surface-variant text-xs font-medium">Students</p>
-            <h3 className="text-3xl font-black text-on-surface font-headline">1,247</h3>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
+        <ScoreCard label="Total Exams" value="128" icon="menu_book" color="primary" subValue="Sem 1" />
+        <ScoreCard label="Completed" value="842" icon="task_alt" color="secondary" subValue="+12%" />
+        <ScoreCard label="Pending" value="34" icon="pending_actions" color="error" subValue="Urgent" />
+        <ScoreCard label="Students" value="1,247" icon="school" color="success" subValue="Active" />
       </div>
 
       {/* Chart Area + Quick Actions */}
@@ -88,7 +50,7 @@ const Dashboard = () => {
               <span className="text-[9px] font-bold text-primary bg-primary/10 px-2 py-1 rounded uppercase">This Week</span>
             </div>
           </div>
-          <div className="flex items-end gap-3 h-40">
+          <div className="flex items-end gap-1 sm:gap-3 h-40">
             {[40, 65, 55, 80, 70, 90, 75].map((h, i) => (
               <div key={i} className="flex-1 flex flex-col items-center gap-2">
                 <div

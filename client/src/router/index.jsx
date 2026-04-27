@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
+import Landing from '../pages/Landing';
 import Login from '../pages/Login';
 import Dashboard from '../pages/Dashboard';
 import CreateExam from '../pages/CreateExam';
@@ -14,7 +15,7 @@ import Layout from '../components/layout/Layout';
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <Navigate to="/dashboard" replace />,
+    element: <Landing />,
   },
   {
     path: '/login',

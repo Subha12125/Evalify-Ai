@@ -38,6 +38,10 @@ h1, h2, h3, h4, h5, h6, .font-headline {
   direction: ltr;
 }
 
+.font-variation-fill {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24 !important;
+}
+
 .ai-glow {
   box-shadow: 0 0 40px rgba(113, 42, 226, 0.08);
 }

@@ -1,15 +1,41 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../context/ToastContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { addToast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleLogin = (e) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => navigate('/dashboard'), 800);
+    addToast('Authenticating...', 'info');
+    setTimeout(() => {
+      addToast('Login successful', 'success');
+      navigate('/dashboard');
+    }, 800);
+  };
+
+  const handleForgotPassword = (e) => {
+    e.preventDefault();
+    addToast('Password reset link sent to your email', 'info');
+  };
+
+  const handleRequestAccess = (e) => {
+    e.preventDefault();
+    addToast('Access request submitted to admin', 'success');
+  };
+
+  const handleSSO = (provider) => (e) => {
+    e.preventDefault();
+    setLoading(true);
+    addToast(`Connecting to ${provider}...`, 'info');
+    setTimeout(() => {
+      addToast('SSO Login successful', 'success');
+      navigate('/dashboard');
+    }, 1000);
   };
 
   return (
@@ -53,7 +79,7 @@ const Login = () => {
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <label className="block text-[10px] font-bold text-on-surface uppercase tracking-widest" htmlFor="password">Password</label>
-                <a className="text-[10px] font-bold text-primary hover:underline" href="#">Forgot?</a>
+                <button type="button" onClick={handleForgotPassword} className="text-[10px] font-bold text-primary hover:underline">Forgot?</button>
               </div>
               <div className="relative">
                 <input
@@ -96,11 +122,11 @@ const Login = () => {
           <div className="mt-8 pt-6 border-t border-outline-variant/10">
             <p className="text-center text-[10px] font-bold text-outline uppercase tracking-widest mb-5">Or continue with</p>
             <div className="grid grid-cols-2 gap-3">
-              <button onClick={handleLogin} className="flex items-center justify-center gap-2 py-2.5 px-4 bg-surface-container-low hover:bg-surface-container-high rounded-xl text-sm font-medium text-on-surface transition-colors">
+              <button type="button" onClick={handleSSO('Google SSO')} className="flex items-center justify-center gap-2 py-2.5 px-4 bg-surface-container-low hover:bg-surface-container-high rounded-xl text-sm font-medium text-on-surface transition-colors">
                 <img alt="Google" className="w-4 h-4" src="https://www.google.com/favicon.ico" />
                 <span>Google SSO</span>
               </button>
-              <button onClick={handleLogin} className="flex items-center justify-center gap-2 py-2.5 px-4 bg-surface-container-low hover:bg-surface-container-high rounded-xl text-sm font-medium text-on-surface transition-colors">
+              <button type="button" onClick={handleSSO('LMS')} className="flex items-center justify-center gap-2 py-2.5 px-4 bg-surface-container-low hover:bg-surface-container-high rounded-xl text-sm font-medium text-on-surface transition-colors">
                 <span className="material-symbols-outlined text-lg">account_balance</span>
                 <span>LMS</span>
               </button>
@@ -110,7 +136,7 @@ const Login = () => {
 
         <div className="mt-8 text-center">
           <p className="text-xs text-on-surface-variant">
-            New to Evalify? <a className="text-primary font-bold hover:underline" href="#">Request Access</a>
+            New to Evalify? <button type="button" onClick={handleRequestAccess} className="text-primary font-bold hover:underline">Request Access</button>
           </p>
         </div>
       </main>

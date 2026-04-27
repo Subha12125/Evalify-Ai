@@ -2,10 +2,17 @@ import React, { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
+import { useToast } from '../../context/ToastContext';
 
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const { addToast } = useToast();
+
+  const handleLinkClick = (e, name) => {
+    e.preventDefault();
+    addToast(`Opening ${name} page...`, 'info');
+  };
 
   return (
     <div className="bg-background text-on-surface flex min-h-screen relative overflow-x-hidden">
@@ -29,9 +36,9 @@ const Layout = () => {
           <div className="px-4 sm:px-8 py-6 flex flex-col sm:flex-row justify-between items-center gap-4">
             <p className="text-[10px] text-outline font-bold uppercase tracking-widest">© 2026 Evalify AI • All rights reserved</p>
             <div className="flex gap-6">
-              <a href="#" className="text-[10px] text-outline hover:text-primary font-bold uppercase tracking-widest transition-colors">Privacy</a>
-              <a href="#" className="text-[10px] text-outline hover:text-primary font-bold uppercase tracking-widest transition-colors">Terms</a>
-              <a href="#" className="text-[10px] text-outline hover:text-primary font-bold uppercase tracking-widest transition-colors">Support</a>
+              <button onClick={(e) => handleLinkClick(e, 'Privacy Policy')} className="text-[10px] text-outline hover:text-primary font-bold uppercase tracking-widest transition-colors">Privacy</button>
+              <button onClick={(e) => handleLinkClick(e, 'Terms of Service')} className="text-[10px] text-outline hover:text-primary font-bold uppercase tracking-widest transition-colors">Terms</button>
+              <button onClick={(e) => handleLinkClick(e, 'Support')} className="text-[10px] text-outline hover:text-primary font-bold uppercase tracking-widest transition-colors">Support</button>
             </div>
           </div>
         </footer>

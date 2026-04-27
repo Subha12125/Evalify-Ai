@@ -1,13 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useToast } from '../context/ToastContext';
 
 const Settings = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { addToast } = useToast();
   const [darkMode, setDarkMode] = useState(false);
   const [emailNotifs, setEmailNotifs] = useState(true);
   const [aiAutoGrade, setAiAutoGrade] = useState(true);
+
+  const handleToggle = (setter, name) => (val) => {
+    setter(val);
+    addToast(`${name} ${val ? 'enabled' : 'disabled'}`, 'success');
+  };
 
   const Toggle = ({ checked, onChange }) => (
     <button
@@ -36,18 +43,26 @@ const Settings = () => {
             <h3 className="text-lg font-bold font-headline">{user?.name || 'Professor'}</h3>
             <p className="text-sm text-on-surface-variant">{user?.email || 'user@university.edu'} • Faculty</p>
           </div>
-          <button className="px-4 py-2 bg-surface-container-high text-on-surface-variant rounded-lg font-bold text-xs hover:bg-surface-container-highest transition-all">
+          <button onClick={() => addToast('Profile editing coming soon', 'info')} className="px-4 py-2 bg-surface-container-high text-on-surface-variant rounded-lg font-bold text-xs hover:bg-surface-container-highest transition-all">
             Edit Profile
           </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-[10px] font-bold uppercase tracking-widest text-outline">Full Name</label>
-            <input className="w-full px-4 py-3 bg-surface-container-high/50 rounded-lg text-sm text-on-surface border-none focus:ring-2 focus:ring-primary/30" defaultValue={user?.name || ''} />
+            <input 
+              className="w-full px-4 py-3 bg-surface-container-high/50 rounded-lg text-sm text-on-surface border-none focus:ring-2 focus:ring-primary/30" 
+              defaultValue={user?.name || ''} 
+              onBlur={() => addToast('Name updated', 'success')}
+            />
           </div>
           <div className="space-y-2">
             <label className="text-[10px] font-bold uppercase tracking-widest text-outline">Department</label>
-            <input className="w-full px-4 py-3 bg-surface-container-high/50 rounded-lg text-sm text-on-surface border-none focus:ring-2 focus:ring-primary/30" placeholder="e.g. Computer Science" />
+            <input 
+              className="w-full px-4 py-3 bg-surface-container-high/50 rounded-lg text-sm text-on-surface border-none focus:ring-2 focus:ring-primary/30" 
+              placeholder="e.g. Computer Science" 
+              onBlur={() => addToast('Department updated', 'success')}
+            />
           </div>
         </div>
       </section>
@@ -61,21 +76,21 @@ const Settings = () => {
               <p className="text-sm font-bold text-on-surface">Dark Mode</p>
               <p className="text-xs text-on-surface-variant">Switch to dark theme</p>
             </div>
-            <Toggle checked={darkMode} onChange={setDarkMode} />
+            <Toggle checked={darkMode} onChange={handleToggle(setDarkMode, 'Dark Mode')} />
           </div>
           <div className="flex justify-between items-center">
             <div>
               <p className="text-sm font-bold text-on-surface">Email Notifications</p>
               <p className="text-xs text-on-surface-variant">Receive grading alerts via email</p>
             </div>
-            <Toggle checked={emailNotifs} onChange={setEmailNotifs} />
+            <Toggle checked={emailNotifs} onChange={handleToggle(setEmailNotifs, 'Email Notifications')} />
           </div>
           <div className="flex justify-between items-center">
             <div>
               <p className="text-sm font-bold text-on-surface">AI Auto-Grading</p>
               <p className="text-xs text-on-surface-variant">Allow AI to auto-submit grades</p>
             </div>
-            <Toggle checked={aiAutoGrade} onChange={setAiAutoGrade} />
+            <Toggle checked={aiAutoGrade} onChange={handleToggle(setAiAutoGrade, 'AI Auto-Grading')} />
           </div>
         </div>
       </section>
@@ -88,7 +103,7 @@ const Settings = () => {
             <p className="text-sm font-bold text-on-surface">Delete Account</p>
             <p className="text-xs text-on-surface-variant">Permanently remove all data and evaluations.</p>
           </div>
-          <button className="px-4 py-2 bg-error/10 text-error rounded-lg font-bold text-xs hover:bg-error hover:text-white transition-all">
+          <button onClick={() => addToast('Are you sure? Contact admin.', 'error')} className="px-4 py-2 bg-error/10 text-error rounded-lg font-bold text-xs hover:bg-error hover:text-white transition-all">
             Delete Account
           </button>
         </div>

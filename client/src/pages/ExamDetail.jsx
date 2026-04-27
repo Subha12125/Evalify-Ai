@@ -1,6 +1,9 @@
 import React from 'react';
+import { useToast } from '../context/ToastContext';
 
 const ExamDetail = () => {
+  const { addToast } = useToast();
+
   return (
     <div className="relative min-h-full">
       {/* Header Section */}
@@ -24,11 +27,11 @@ const ExamDetail = () => {
           </div>
         </div>
         <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
-          <button className="flex-1 sm:flex-none bg-surface-container-lowest text-on-surface-variant px-4 sm:px-6 py-3 rounded-lg font-bold shadow-sm flex items-center justify-center gap-2 hover:bg-surface-container-high transition-all border border-outline-variant/10 text-xs">
+          <button onClick={() => addToast('Drafting email to student...', 'info')} className="flex-1 sm:flex-none bg-surface-container-lowest text-on-surface-variant px-4 sm:px-6 py-3 rounded-lg font-bold shadow-sm flex items-center justify-center gap-2 hover:bg-surface-container-high transition-all border border-outline-variant/10 text-xs">
             <span className="material-symbols-outlined text-sm">mail</span>
             Email
           </button>
-          <button className="flex-1 sm:flex-none bg-primary text-on-primary px-4 sm:px-6 py-3 rounded-lg font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2 hover:opacity-90 transition-all text-xs">
+          <button onClick={() => addToast('Preparing PDF download...', 'info')} className="flex-1 sm:flex-none bg-primary text-on-primary px-4 sm:px-6 py-3 rounded-lg font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2 hover:opacity-90 transition-all text-xs">
             <span className="material-symbols-outlined text-sm">download</span>
             PDF
           </button>

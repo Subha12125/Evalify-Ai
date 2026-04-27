@@ -1,12 +1,14 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useExam } from '../hooks/useExam';
+import { useToast } from '../context/ToastContext';
 import StatusBadge from '../components/evaluation/StatusBadge';
 import Spinner from '../components/ui/Spinner';
 
 const Exams = () => {
   const navigate = useNavigate();
   const { exams, loading, fetchExams } = useExam();
+  const { addToast } = useToast();
 
   useEffect(() => {
     fetchExams();
@@ -67,7 +69,13 @@ const Exams = () => {
                         <StatusBadge status={exam.status?.toLowerCase() || 'pending'} />
                       </td>
                       <td className="px-8 py-6 text-right">
-                        <button className="p-2 hover:bg-white rounded-lg text-outline hover:text-primary transition-colors">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToast('Opening options menu...', 'info');
+                          }}
+                          className="p-2 hover:bg-white rounded-lg text-outline hover:text-primary transition-colors"
+                        >
                           <span className="material-symbols-outlined">more_vert</span>
                         </button>
                       </td>

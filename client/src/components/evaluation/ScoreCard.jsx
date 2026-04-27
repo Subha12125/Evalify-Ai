@@ -9,28 +9,43 @@ const ScoreCard = ({ label, value, subValue, icon, color = 'primary', noBg = fal
     warning: 'bg-warning/10 text-warning',
   };
 
+  const textColors = {
+    primary: 'text-primary',
+    secondary: 'text-secondary',
+    success: 'text-success',
+    error: 'text-error',
+    warning: 'text-warning',
+  };
+
   return (
-    <div className="bg-white p-4 rounded-2xl atmospheric-shadow border border-outline-variant/10 flex items-center gap-3 group hover:translate-y-[-2px] transition-all min-w-0">
-      {!noBg ? (
-        <div className={`w-10 h-14 rounded-full flex items-center justify-center text-xl shrink-0 ${colors[color]}`}>
-          <span className="material-symbols-outlined font-variation-fill">{icon}</span>
-        </div>
-      ) : (
-        <div className="w-10 h-14 flex items-center justify-center text-2xl shrink-0 text-on-surface">
-          <span className="material-symbols-outlined font-variation-fill">{icon}</span>
-        </div>
-      )}
-      <div className="min-w-0 flex-1">
-        <p className="text-[9px] font-bold uppercase tracking-wide text-outline mb-0.5 break-words">{label}</p>
-        <div className="flex flex-col">
-          <h3 className="text-2xl font-black font-headline text-on-surface leading-tight">{value}</h3>
-          {subValue && (
-            <span className={`text-[10px] font-bold ${subValue.includes('+') ? 'text-green-600' : 'text-on-surface-variant'}`}>
-              {subValue}
-            </span>
-          )}
-        </div>
+    <div className="bg-white p-5 sm:p-6 rounded-[1.5rem] atmospheric-shadow border border-outline-variant/10 flex flex-col justify-between h-full min-h-[160px] group hover:-translate-y-1 hover:shadow-md transition-all relative overflow-hidden">
+      
+      {/* Top Section: Icon */}
+      <div className="mb-6 relative z-10">
+        {!noBg ? (
+          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm ${colors[color]}`}>
+            <span className="material-symbols-outlined text-2xl font-variation-fill">{icon}</span>
+          </div>
+        ) : (
+          <div className={`w-12 h-12 flex items-center justify-center ${textColors[color] || 'text-on-surface'}`}>
+            <span className="material-symbols-outlined text-4xl font-variation-fill">{icon}</span>
+          </div>
+        )}
       </div>
+      
+      {/* Bottom Section: Text & Values */}
+      <div className="relative z-10 flex flex-col gap-1">
+        <h3 className="text-3xl font-black font-headline text-on-surface leading-none">{value}</h3>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-outline leading-tight mt-1 break-words">
+          {label}
+        </p>
+        {subValue && (
+          <p className={`text-[10px] font-bold mt-1 ${subValue.includes('+') ? 'text-emerald-500' : 'text-on-surface-variant'}`}>
+            {subValue}
+          </p>
+        )}
+      </div>
+      
     </div>
   );
 };

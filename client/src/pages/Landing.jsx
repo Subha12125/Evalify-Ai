@@ -1,9 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
+import { useToast } from '../context/ToastContext';
 
 const Landing = () => {
   const navigate = useNavigate();
+  const { addToast } = useToast();
 
   return (
     <div className="min-h-screen bg-background text-on-surface overflow-x-hidden">
@@ -44,7 +46,7 @@ const Landing = () => {
 
         <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
           <Button onClick={() => navigate('/login')} size="lg" className="flex-1 shadow-2xl">Start Evaluating Free</Button>
-          <Button variant="outline" size="lg" className="flex-1">Watch Demo</Button>
+          <Button onClick={() => addToast('Opening video player...', 'info')} variant="outline" size="lg" className="flex-1">Watch Demo</Button>
         </div>
 
         {/* Dashboard Preview */}

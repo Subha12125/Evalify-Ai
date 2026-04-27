@@ -1,7 +1,17 @@
 import React, { useState } from 'react';
+import { useToast } from '../context/ToastContext';
 
 const Pricing = () => {
   const [annual, setAnnual] = useState(false);
+  const { addToast } = useToast();
+
+  const handlePlanSelect = (planName) => {
+    addToast(`Redirecting to checkout for ${planName} plan...`, 'info');
+  };
+
+  const handleDemo = () => {
+    addToast('Opening demo scheduling calendar...', 'info');
+  };
 
   const plans = [
     {
@@ -91,6 +101,7 @@ const Pricing = () => {
             </ul>
 
             <button
+              onClick={() => handlePlanSelect(plan.name)}
               className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all active:scale-95 ${plan.tag ? 'bg-primary text-on-primary shadow-lg shadow-primary/20 hover:opacity-90' : 'bg-surface-container-high text-on-surface hover:bg-primary hover:text-white'}`}
             >
               {plan.cta}
@@ -125,7 +136,7 @@ const Pricing = () => {
         <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
         <h3 className="text-2xl font-black font-headline mb-3 relative z-10">Need a Custom Solution?</h3>
         <p className="text-white/80 text-sm mb-6 max-w-md mx-auto relative z-10">Get a tailored plan for your institution with dedicated support and custom AI model training.</p>
-        <button className="px-8 py-3 bg-white text-primary font-bold rounded-xl hover:opacity-90 active:scale-95 transition-all shadow-xl relative z-10">
+        <button onClick={handleDemo} className="px-8 py-3 bg-white text-primary font-bold rounded-xl hover:opacity-90 active:scale-95 transition-all shadow-xl relative z-10">
           Schedule a Demo
         </button>
       </div>

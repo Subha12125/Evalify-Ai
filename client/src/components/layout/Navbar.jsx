@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
 
@@ -6,6 +6,7 @@ const Navbar = ({ onMenuClick }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { addToast } = useToast();
+  const [showNotifs, setShowNotifs] = useState(false);
 
   const getPageTitle = () => {
     const map = {
@@ -19,6 +20,19 @@ const Navbar = ({ onMenuClick }) => {
     };
     if (location.pathname.startsWith('/exams/')) return 'Exam Detail';
     return map[location.pathname] || 'Evalify AI';
+  };
+
+  const handleExport = () => {
+    addToast('Generating export file...', 'info');
+    setTimeout(() => {
+      const element = document.createElement("a");
+      const file = new Blob(["This is a mock export file from Evalify AI."], {type: 'text/plain'});
+      element.href = URL.createObjectURL(file);
+      element.download = "evalify-export.txt";
+      document.body.appendChild(element); // Required for this to work in FireFox
+      element.click();
+      addToast('Export downloaded successfully!', 'success');
+    }, 1000);
   };
 
   return (
@@ -52,7 +66,7 @@ const Navbar = ({ onMenuClick }) => {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-4">
+      <div className="flex items-center gap-2 sm:gap-4 relative">
         <button
           onClick={() => navigate('/create-exam')}
           className="hidden md:flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg font-bold text-xs hover:opacity-90 active:scale-95 transition-all shadow-sm"
@@ -61,16 +75,31 @@ const Navbar = ({ onMenuClick }) => {
           New Exam
         </button>
 
-        <button
-          onClick={() => addToast('No new notifications')}
-          className="text-on-surface-variant hover:text-primary relative p-2 rounded-lg hover:bg-surface-container-high transition-all"
-        >
-          <span className="material-symbols-outlined text-xl">notifications</span>
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full ring-2 ring-surface"></span>
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => setShowNotifs(!showNotifs)}
+            className="text-on-surface-variant hover:text-primary relative p-2 rounded-lg hover:bg-surface-container-high transition-all"
+          >
+            <span className="material-symbols-outlined text-xl">notifications</span>
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full ring-2 ring-surface"></span>
+          </button>
+          
+          {showNotifs && (
+            <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-outline-variant/10 overflow-hidden z-50 animate-slide-up">
+              <div className="p-3 border-b border-outline-variant/10 bg-surface-container-lowest flex justify-between items-center">
+                <span className="font-bold text-xs uppercase tracking-widest text-outline">Notifications</span>
+                <span className="text-[10px] bg-error/10 text-error px-2 py-0.5 rounded-full font-bold">1 New</span>
+              </div>
+              <div className="p-3 hover:bg-surface-container-low cursor-pointer transition-colors" onClick={() => { setShowNotifs(false); navigate('/evaluation-progress'); }}>
+                <p className="text-xs font-bold text-on-surface">Evaluation Complete</p>
+                <p className="text-[10px] text-on-surface-variant mt-1">CS-101 Midterm has finished grading. View results.</p>
+              </div>
+            </div>
+          )}
+        </div>
 
         <button
-          onClick={() => addToast('Preparing export...')}
+          onClick={handleExport}
           className="hidden sm:flex items-center gap-1.5 px-4 py-2 bg-surface-container-high text-on-surface-variant rounded-lg font-bold text-xs hover:bg-surface-container-highest transition-all"
         >
           <span className="material-symbols-outlined text-sm">download</span>

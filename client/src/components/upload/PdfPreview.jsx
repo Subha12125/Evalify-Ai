@@ -1,6 +1,9 @@
 import React from 'react';
+import { useToast } from '../../context/ToastContext';
 
 const PdfPreview = ({ url, fileName }) => {
+  const { addToast } = useToast();
+
   if (!url) return null;
 
   return (
@@ -11,10 +14,10 @@ const PdfPreview = ({ url, fileName }) => {
           <span className="text-xs font-bold text-on-surface uppercase tracking-tight truncate max-w-[200px]">{fileName}</span>
         </div>
         <div className="flex gap-2">
-          <button className="p-2 hover:bg-surface-container-highest rounded-lg transition-colors">
+          <button onClick={() => addToast('Zoom not available in preview', 'info')} className="p-2 hover:bg-surface-container-highest rounded-lg transition-colors">
             <span className="material-symbols-outlined text-lg">zoom_in</span>
           </button>
-          <button className="p-2 hover:bg-surface-container-highest rounded-lg transition-colors">
+          <button onClick={() => addToast('Printing document...', 'info')} className="p-2 hover:bg-surface-container-highest rounded-lg transition-colors">
             <span className="material-symbols-outlined text-lg">print</span>
           </button>
         </div>

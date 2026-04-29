@@ -1,14 +1,12 @@
 const { createObjectCsvStringifier } = require('csv-writer');
 const ResultModel = require('../models/result.model');
 const ExamModel = require('../models/exam.model');
-const logger = require('../utils/logger');
 
 const ExportService = {
   /**
    * Export results as CSV string.
    */
   async toCSV(examId) {
-    const exam = await ExamModel.findById(examId);
     const results = await ResultModel.findByExam(examId);
 
     if (!results.length) {

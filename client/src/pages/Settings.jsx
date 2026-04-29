@@ -1,10 +1,17 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../context/ToastContext';
 
+const Toggle = ({ checked, onChange }) => (
+  <button
+    onClick={() => onChange(!checked)}
+    className={`relative w-11 h-6 rounded-full transition-colors ${checked ? 'bg-primary' : 'bg-surface-container-highest'}`}
+  >
+    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow-md transition-transform ${checked ? 'left-6' : 'left-1'}`} />
+  </button>
+);
+
 const Settings = () => {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const { addToast } = useToast();
   const [darkMode, setDarkMode] = useState(false);
@@ -15,15 +22,6 @@ const Settings = () => {
     setter(val);
     addToast(`${name} ${val ? 'enabled' : 'disabled'}`, 'success');
   };
-
-  const Toggle = ({ checked, onChange }) => (
-    <button
-      onClick={() => onChange(!checked)}
-      className={`relative w-11 h-6 rounded-full transition-colors ${checked ? 'bg-primary' : 'bg-surface-container-highest'}`}
-    >
-      <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow-md transition-transform ${checked ? 'left-6' : 'left-1'}`} />
-    </button>
-  );
 
   return (
     <div className="min-h-full max-w-3xl">

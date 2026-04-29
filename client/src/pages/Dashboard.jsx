@@ -7,7 +7,7 @@ import ScoreCard from '../components/evaluation/ScoreCard';
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { exams, loading, fetchExams } = useExam();
+  const { fetchExams } = useExam();
 
   useEffect(() => {
     fetchExams();

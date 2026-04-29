@@ -1,6 +1,6 @@
 import React from 'react';
 
-const UploadProgress = ({ progress, fileName, status = 'uploading' }) => {
+const UploadProgress = ({ progress, fileName }) => {
   return (
     <div className="bg-surface-container-low p-4 rounded-2xl border border-outline-variant/10 mb-3 animate-page-in">
       <div className="flex justify-between items-center mb-2">

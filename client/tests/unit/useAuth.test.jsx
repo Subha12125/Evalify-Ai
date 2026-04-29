@@ -62,7 +62,7 @@ describe('useAuth hook', () => {
     await act(async () => {
       try {
         await result.current.login('test@example.com', 'wrongpassword');
-      } catch (e) {
+      } catch {
         // Expected to throw
       }
     });

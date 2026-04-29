@@ -3,7 +3,8 @@ const logger = require('../utils/logger');
 /**
  * Global error handling middleware.
  */
-function errorHandler(err, req, res, _next) {
+// eslint-disable-next-line no-unused-vars
+function errorHandler(err, req, res, next) {
   logger.error(err.message, { stack: err.stack, path: req.path, method: req.method });
 
   // Multer file size error

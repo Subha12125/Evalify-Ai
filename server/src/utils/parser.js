@@ -25,7 +25,7 @@ function parseEvaluationResponse(rawText) {
 /**
  * Extracts student info from PDF text or filename.
  */
-function extractStudentInfo(filename, pdfText = '') {
+function extractStudentInfo(filename) {
   // Try to extract roll number / name from filename pattern: "RollNo_Name.pdf"
   const match = filename.replace(/\.pdf$/i, '').match(/^(\w+)_(.+)$/);
 

@@ -1,6 +1,5 @@
 const ResultModel = require('../models/result.model');
 const ExportService = require('../services/exportService');
-const logger = require('../utils/logger');
 
 /**
  * GET /api/results/:examId

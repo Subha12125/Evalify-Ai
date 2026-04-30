@@ -3,39 +3,46 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../hooks/useAuth';
 
-const Login = () => {
+const Signup = () => {
   const navigate = useNavigate();
   const { addToast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const { login: authenticate, signInWithProvider } = useAuth();
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
 
-  const handleLogin = async (e) => {
+  const { signup: registerUser, signInWithProvider } = useAuth();
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+
+  const handleSignup = async (e) => {
     e.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+      return addToast('Passwords do not match', 'error');
+    }
+
     setLoading(true);
-    addToast('Authenticating...', 'info');
+    addToast('Creating your account...', 'info');
     try {
-      await authenticate(email, password);
-      addToast('Login successful', 'success');
+      await registerUser({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password
+      });
+      addToast('Registration successful', 'success');
       navigate('/dashboard');
     } catch (err) {
-      addToast(err.message || 'Login failed', 'error');
+      addToast(err.message || 'Signup failed', 'error');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleForgotPassword = (e) => {
-    e.preventDefault();
-    addToast('Password reset link sent to your email', 'info');
-  };
-
-  const handleRequestAccess = (e) => {
-    e.preventDefault();
-    addToast('Access request submitted to admin', 'success');
   };
 
   const handleSSO = (provider) => async (e) => {
@@ -54,7 +61,7 @@ const Login = () => {
   };
 
   return (
-    <div className="bg-background text-on-surface min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="bg-background text-on-surface min-h-screen flex flex-col items-center justify-center relative overflow-hidden py-12">
       <div className="absolute inset-0 -z-10 bg-surface">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary/5 blur-[120px]"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-secondary/5 blur-[100px]"></div>
@@ -65,47 +72,57 @@ const Login = () => {
       </div>
 
       <main className="w-full max-w-md px-6 z-10">
-        <div className="flex flex-col items-center mb-10">
+        <div className="flex flex-col items-center mb-8">
           <div className="w-14 h-14 bg-gradient-to-br from-primary to-primary-container rounded-xl flex items-center justify-center mb-6 ai-glow">
             <span className="material-symbols-outlined text-white text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-on-surface mb-2 font-headline">Evalify AI</h1>
-          <p className="text-on-surface-variant font-medium text-sm">Empowering the Academic Edge</p>
+          <p className="text-on-surface-variant font-medium text-sm text-center">Join the future of academic assessment</p>
         </div>
 
         <div className="bg-white p-8 sm:p-10 rounded-2xl atmospheric-shadow">
           <div className="mb-8">
-            <h2 className="text-xl font-bold text-on-surface mb-1 font-headline">Welcome back</h2>
-            <p className="text-on-surface-variant text-sm">Enter your faculty credentials.</p>
+            <h2 className="text-xl font-bold text-on-surface mb-1 font-headline">Create Account</h2>
+            <p className="text-on-surface-variant text-sm">Start your 14-day free trial today.</p>
           </div>
 
-          <form className="space-y-5" onSubmit={handleLogin}>
+          <form className="space-y-4" onSubmit={handleSignup}>
             <div className="space-y-2">
-              <label className="block text-[10px] font-bold text-on-surface uppercase tracking-widest" htmlFor="email">Email</label>
+              <label className="block text-[10px] font-bold text-on-surface uppercase tracking-widest" htmlFor="name">Full Name</label>
               <input
                 className="w-full px-4 py-3 bg-surface-container-high/50 rounded-lg focus:ring-2 focus:ring-primary/40 text-on-surface placeholder:text-outline text-sm transition-all border-none"
-                id="email"
-                placeholder="professor@university.edu"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="name"
+                placeholder="Dr. Jane Smith"
+                type="text"
+                value={formData.name}
+                onChange={handleChange}
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <label className="block text-[10px] font-bold text-on-surface uppercase tracking-widest" htmlFor="password">Password</label>
-                <button type="button" onClick={handleForgotPassword} className="text-[10px] font-bold text-primary hover:underline">Forgot?</button>
-              </div>
+              <label className="block text-[10px] font-bold text-on-surface uppercase tracking-widest" htmlFor="email">Work Email</label>
+              <input
+                className="w-full px-4 py-3 bg-surface-container-high/50 rounded-lg focus:ring-2 focus:ring-primary/40 text-on-surface placeholder:text-outline text-sm transition-all border-none"
+                id="email"
+                placeholder="professor@university.edu"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-[10px] font-bold text-on-surface uppercase tracking-widest" htmlFor="password">Password</label>
               <div className="relative">
                 <input
                   className="w-full px-4 py-3 pr-12 bg-surface-container-high/50 rounded-lg focus:ring-2 focus:ring-primary/40 text-on-surface placeholder:text-outline text-sm transition-all border-none"
                   id="password"
                   placeholder="••••••••"
                   type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={formData.password}
+                  onChange={handleChange}
                   required
                 />
                 <button
@@ -118,28 +135,38 @@ const Login = () => {
               </div>
             </div>
 
-            <div className="flex items-center">
-              <input className="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary bg-surface-container-highest" id="remember" type="checkbox" />
-              <label className="ml-2 text-sm text-on-surface-variant" htmlFor="remember">Keep me authenticated</label>
+            <div className="space-y-2">
+              <label className="block text-[10px] font-bold text-on-surface uppercase tracking-widest" htmlFor="confirmPassword">Confirm Password</label>
+              <input
+                className="w-full px-4 py-3 bg-surface-container-high/50 rounded-lg focus:ring-2 focus:ring-primary/40 text-on-surface placeholder:text-outline text-sm transition-all border-none"
+                id="confirmPassword"
+                placeholder="••••••••"
+                type="password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+              />
             </div>
 
-            <button
-              className={`w-full py-3.5 bg-primary text-on-primary font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 ${loading ? 'opacity-70 pointer-events-none' : 'hover:opacity-90 active:scale-[0.98]'}`}
-              type="submit"
-            >
-              {loading ? (
-                <span className="material-symbols-outlined text-lg animate-spin">progress_activity</span>
-              ) : (
-                <>
-                  <span>Sign In</span>
-                  <span className="material-symbols-outlined text-lg">arrow_forward</span>
-                </>
-              )}
-            </button>
+            <div className="pt-2">
+              <button
+                className={`w-full py-3.5 bg-primary text-on-primary font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 ${loading ? 'opacity-70 pointer-events-none' : 'hover:opacity-90 active:scale-[0.98]'}`}
+                type="submit"
+              >
+                {loading ? (
+                  <span className="material-symbols-outlined text-lg animate-spin">progress_activity</span>
+                ) : (
+                  <>
+                    <span>Create Account</span>
+                    <span className="material-symbols-outlined text-lg">person_add</span>
+                  </>
+                )}
+              </button>
+            </div>
           </form>
 
           <div className="mt-8 pt-6 border-t border-outline-variant/10">
-            <p className="text-center text-[10px] font-bold text-outline uppercase tracking-widest mb-5">Or continue with</p>
+            <p className="text-center text-[10px] font-bold text-outline uppercase tracking-widest mb-5">Or sign up with</p>
             <div className="grid grid-cols-2 gap-3">
               <button type="button" onClick={handleSSO('Google')} className="flex items-center justify-center gap-2 py-2.5 px-4 bg-surface-container-low hover:bg-surface-container-high rounded-xl text-sm font-medium text-on-surface transition-colors">
                 <img alt="Google" className="w-4 h-4" src="https://www.google.com/favicon.ico" />
@@ -155,7 +182,7 @@ const Login = () => {
 
         <div className="mt-8 text-center">
           <p className="text-xs text-on-surface-variant">
-            New to Evalify? <Link to="/signup" className="text-primary font-bold hover:underline">Create Account</Link>
+            Already have an account? <Link to="/login" className="text-primary font-bold hover:underline">Sign In</Link>
           </p>
         </div>
       </main>
@@ -163,4 +190,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Signup;

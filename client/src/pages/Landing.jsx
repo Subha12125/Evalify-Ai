@@ -1,11 +1,30 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import { useToast } from '../context/ToastContext';
+import api from '../services/api';
 
 const Landing = () => {
   const navigate = useNavigate();
   const { addToast } = useToast();
+  const [backendStatus, setBackendStatus] = useState('Checking...');
+
+  useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        const response = await api.get('/health');
+        if (response.data.status === 'ok') {
+          setBackendStatus('Connected');
+        } else {
+          setBackendStatus('Error');
+        }
+      } catch (err) {
+        console.error('Health check failed:', err);
+        setBackendStatus('Offline');
+      }
+    };
+    checkHealth();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background text-on-surface overflow-x-hidden">
@@ -19,7 +38,7 @@ const Landing = () => {
         </div>
         <div className="flex items-center gap-4">
           <button onClick={() => navigate('/login')} className="text-sm font-bold text-on-surface-variant hover:text-primary transition-colors">Sign In</button>
-          <Button onClick={() => navigate('/login')} size="sm">Get Started</Button>
+          <Button onClick={() => navigate('/signup')} size="sm">Get Started</Button>
         </div>
       </nav>
 
@@ -30,9 +49,14 @@ const Landing = () => {
           <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-secondary/20 rounded-full blur-[100px] animate-pulse delay-700" />
         </div>
 
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/5 rounded-full border border-primary/10 mb-8 animate-page-in">
+        <div className="inline-flex items-center gap-3 px-4 py-2 bg-primary/5 rounded-full border border-primary/10 mb-8 animate-page-in">
           <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
           <span className="text-[10px] font-black uppercase tracking-widest text-primary">The Future of Academic Assessment</span>
+          <div className="w-px h-3 bg-primary/20 mx-1" />
+          <div className="flex items-center gap-1.5">
+            <div className={`w-1.5 h-1.5 rounded-full ${backendStatus === 'Connected' ? 'bg-emerald-500' : backendStatus === 'Offline' ? 'bg-red-500' : 'bg-amber-500'} animate-pulse`} />
+            <span className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Backend: {backendStatus}</span>
+          </div>
         </div>
 
         <h1 className="text-5xl md:text-7xl font-black font-headline tracking-tighter mb-6 max-w-4xl leading-[1.1]">
@@ -45,7 +69,7 @@ const Landing = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
-          <Button onClick={() => navigate('/login')} size="lg" className="flex-1 shadow-2xl">Start Evaluating Free</Button>
+          <Button onClick={() => navigate('/signup')} size="lg" className="flex-1 shadow-2xl">Start Evaluating Free</Button>
           <Button onClick={() => addToast('Opening video player...', 'info')} variant="outline" size="lg" className="flex-1">Watch Demo</Button>
         </div>
 

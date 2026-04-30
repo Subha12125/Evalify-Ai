@@ -45,6 +45,22 @@ export const useAuth = () => {
     }
   }, [logout]);
 
+  const handleProviderLogin = useCallback(async (provider) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await authService.signInWithProvider(provider);
+      login(data.user, data.token);
+      return data;
+    } catch (err) {
+      const message = err.message || `${provider} login failed`;
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, login]);
+
   return {
     user,
     isAuthenticated,
@@ -52,6 +68,7 @@ export const useAuth = () => {
     error,
     login: handleLogin,
     signup: handleSignup,
-    logout: handleLogout
+    logout: handleLogout,
+    signInWithProvider: handleProviderLogin
   };
 };

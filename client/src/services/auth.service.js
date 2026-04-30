@@ -23,7 +23,8 @@ export const authService = {
   },
 
   logout: async () => {
-    // Optionally call backend to invalidate token
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
     return true;
   },
 

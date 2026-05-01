@@ -41,8 +41,8 @@ const Exams = () => {
               <thead>
                 <tr className="bg-surface-container-low/50 text-[10px] font-bold uppercase tracking-widest text-outline">
                   <th className="px-8 py-4">Examination Title</th>
-                  <th className="px-8 py-4">Academic Batch</th>
-                  <th className="px-8 py-4">Created Date</th>
+                  <th className="px-8 py-4">Subject</th>
+                  <th className="px-8 py-4">Total Marks</th>
                   <th className="px-8 py-4">Status</th>
                   <th className="px-8 py-4 text-right">Actions</th>
                 </tr>
@@ -63,8 +63,8 @@ const Exams = () => {
                           <span className="font-bold text-on-surface font-headline">{exam.name || exam.title}</span>
                         </div>
                       </td>
-                      <td className="px-8 py-6 text-sm text-on-surface-variant font-medium">{exam.batch}</td>
-                      <td className="px-8 py-6 text-sm text-outline font-medium">{exam.date || 'Today'}</td>
+                      <td className="px-8 py-6 text-sm text-on-surface-variant font-medium">{exam.subject}</td>
+                      <td className="px-8 py-6 text-sm text-outline font-medium">{exam.total_marks}</td>
                       <td className="px-8 py-6">
                         <StatusBadge status={exam.status?.toLowerCase() || 'pending'} />
                       </td>

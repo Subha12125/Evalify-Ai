@@ -33,7 +33,7 @@ export const useEvaluation = () => {
     setEvaluating(true);
     try {
       const data = await evaluationService.getEvaluationResults(examId);
-      setEvaluations(data);
+      setEvaluations(data.results || []);
       return data;
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch results');
@@ -42,13 +42,30 @@ export const useEvaluation = () => {
     }
   }, [setEvaluating, setEvaluations, setError]);
 
+  const fetchStatus = useCallback(async (examId) => {
+    try {
+      const data = await evaluationService.getEvaluationStatus(examId);
+      if (data.counts) {
+        const total = data.total || 1;
+        const completed = data.counts.completed || 0;
+        setProgress(Math.round((completed / total) * 100));
+      }
+      setEvaluations(data.evaluations || []);
+      return data;
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to fetch status');
+    }
+  }, [setEvaluations, setProgress, setError]);
+
   return {
     evaluations,
     progress,
     isEvaluating,
+    loading: isEvaluating,
     error,
     startEvaluation,
     fetchResults,
+    fetchStatus,
     updateEvaluationStatus
   };
 };

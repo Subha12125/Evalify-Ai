@@ -1,29 +1,39 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useExam } from '../hooks/useExam';
 import ScoreCard from '../components/evaluation/ScoreCard';
+import Spinner from '../components/ui/Spinner';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { fetchExams } = useExam();
+  const { exams, loading, fetchExams } = useExam();
 
   useEffect(() => {
     fetchExams();
   }, [fetchExams]);
 
-  const recentActivity = [
-    { id: 1, name: 'Advanced Algorithms Final', batch: 'CS-2024-A', student: 'John Doe', initials: 'JD', status: 'Completed', statusColor: 'emerald', route: '/exams/1' },
-    { id: 2, name: 'Neural Networks Intro', batch: 'AI-Lab-1', student: 'Alice Smith', initials: 'AS', status: 'Processing', statusColor: 'amber', route: '/evaluation-progress' },
-    { id: 3, name: 'Data Structures Midterm', batch: 'CS-2023-B', student: 'James Lee', initials: 'JL', status: 'Completed', statusColor: 'emerald', route: '/exams/3' },
-    { id: 4, name: 'Microeconomics Final', batch: 'ECO-2024', student: 'Sara Patel', initials: 'SP', status: 'Flagged', statusColor: 'red', route: '/exams/4' },
-  ];
+  // Compute real stats from exams data
+  const totalExams = exams.length;
+  const completedExams = exams.filter(e => e.status === 'completed').length;
+  const pendingExams = exams.filter(e => ['pending', 'evaluating', 'processing'].includes(e.status)).length;
+  const failedExams = exams.filter(e => e.status === 'failed').length;
 
   const statusColors = {
-    emerald: 'bg-emerald-500',
-    amber: 'bg-amber-500',
-    red: 'bg-red-500',
+    completed: 'bg-emerald-500',
+    evaluating: 'bg-amber-500',
+    processing: 'bg-amber-500',
+    pending: 'bg-blue-500',
+    failed: 'bg-red-500',
+  };
+
+  const statusLabels = {
+    completed: 'Completed',
+    evaluating: 'Processing',
+    processing: 'Processing',
+    pending: 'Pending',
+    failed: 'Failed',
   };
 
   return (
@@ -33,33 +43,45 @@ const Dashboard = () => {
         <p className="text-on-surface-variant text-sm sm:text-base">Welcome back, {user?.name || 'Professor'}. Here is your evaluation summary.</p>
       </div>
 
-      {/* Stats Grid */}
+      {/* Stats Grid — Real Data */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
-        <ScoreCard label="Total Exams" value="128" icon="menu_book" color="primary" subValue="Sem 1" />
-        <ScoreCard label="Completed" value="842" icon="task_alt" color="secondary" subValue="+12%" />
-        <ScoreCard label="Pending" value="34" icon="pending_actions" color="error" subValue="Urgent" />
-        <ScoreCard label="Students" value="1,247" icon="school" color="success" subValue="Active" />
+        <ScoreCard label="Total Exams" value={String(totalExams)} icon="menu_book" color="primary" subValue="All Time" />
+        <ScoreCard label="Completed" value={String(completedExams)} icon="task_alt" color="secondary" subValue={totalExams > 0 ? `${Math.round((completedExams / totalExams) * 100)}%` : '—'} />
+        <ScoreCard label="Pending" value={String(pendingExams)} icon="pending_actions" color="error" subValue={pendingExams > 0 ? 'In Progress' : 'None'} />
+        <ScoreCard label="Failed" value={String(failedExams)} icon="error" color="error" subValue={failedExams > 0 ? 'Needs Attention' : 'All Good'} />
       </div>
 
       {/* Chart Area + Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
         <div className="lg:col-span-2 bg-white rounded-xl p-6 atmospheric-shadow border border-outline-variant/10">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="font-headline font-bold text-sm">Weekly Evaluation Trend</h3>
-            <div className="flex gap-2">
-              <span className="text-[9px] font-bold text-primary bg-primary/10 px-2 py-1 rounded uppercase">This Week</span>
-            </div>
+            <h3 className="font-headline font-bold text-sm">Quick Actions</h3>
           </div>
-          <div className="flex items-end gap-1 sm:gap-3 h-40">
-            {[40, 65, 55, 80, 70, 90, 75].map((h, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                <div
-                  className={`w-full rounded-lg transition-all hover:opacity-80 ${i === 5 ? 'bg-primary' : 'bg-primary/15'}`}
-                  style={{ height: `${h}%` }}
-                />
-                <span className="text-[9px] font-bold text-outline">{['M','T','W','T','F','S','S'][i]}</span>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <button 
+              onClick={() => navigate('/create-exam')}
+              className="p-6 rounded-xl bg-primary/5 hover:bg-primary/10 transition-colors text-left group"
+            >
+              <span className="material-symbols-outlined text-primary text-2xl mb-3 group-hover:scale-110 transition-transform inline-block">add_circle</span>
+              <p className="font-bold text-sm text-on-surface">New Evaluation</p>
+              <p className="text-xs text-on-surface-variant mt-1">Upload & evaluate answer sheets</p>
+            </button>
+            <button 
+              onClick={() => navigate('/exams')}
+              className="p-6 rounded-xl bg-secondary/5 hover:bg-secondary/10 transition-colors text-left group"
+            >
+              <span className="material-symbols-outlined text-secondary text-2xl mb-3 group-hover:scale-110 transition-transform inline-block">menu_book</span>
+              <p className="font-bold text-sm text-on-surface">View Exams</p>
+              <p className="text-xs text-on-surface-variant mt-1">Manage all your examinations</p>
+            </button>
+            <button 
+              onClick={() => navigate('/results')}
+              className="p-6 rounded-xl bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors text-left group"
+            >
+              <span className="material-symbols-outlined text-emerald-600 text-2xl mb-3 group-hover:scale-110 transition-transform inline-block">analytics</span>
+              <p className="font-bold text-sm text-on-surface">Results</p>
+              <p className="text-xs text-on-surface-variant mt-1">View scores & AI insights</p>
+            </button>
           </div>
         </div>
 
@@ -71,69 +93,88 @@ const Dashboard = () => {
           <div className="space-y-4">
             <div className="p-4 bg-secondary/5 rounded-lg border-l-2 border-secondary">
               <p className="text-[10px] font-bold text-secondary mb-1 uppercase tracking-wider">Performance</p>
-              <p className="text-xs text-on-surface-variant leading-relaxed">CS-2024-A batch performance up 8% since midterm.</p>
+              <p className="text-xs text-on-surface-variant leading-relaxed">
+                {completedExams > 0 
+                  ? `${completedExams} exam(s) evaluated successfully. AI models are ready.`
+                  : 'No evaluations yet. Upload your first exam to get started.'}
+              </p>
             </div>
             <div className="p-4 bg-primary/5 rounded-lg border-l-2 border-primary">
               <p className="text-[10px] font-bold text-primary mb-1 uppercase tracking-wider">Suggestion</p>
-              <p className="text-xs text-on-surface-variant leading-relaxed">34 pending items are similar. Use Batch Grading to save ~2h.</p>
+              <p className="text-xs text-on-surface-variant leading-relaxed">
+                {pendingExams > 0
+                  ? `${pendingExams} pending evaluation(s). Check the Exams page for details.`
+                  : 'All evaluations are up to date. Create a new exam to continue.'}
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Recent Activity Table */}
+      {/* Recent Exams Table — Real Data */}
       <div>
         <div className="flex justify-between items-center mb-5">
-          <h2 className="text-xl font-bold tracking-tight font-headline">Recent Activity</h2>
-          <button onClick={() => navigate('/results')} className="text-primary font-bold text-xs flex items-center gap-1 hover:underline">
+          <h2 className="text-xl font-bold tracking-tight font-headline">Recent Exams</h2>
+          <button onClick={() => navigate('/exams')} className="text-primary font-bold text-xs flex items-center gap-1 hover:underline">
             View All <span className="material-symbols-outlined text-sm">arrow_forward</span>
           </button>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-outline-variant/10 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[600px]">
-              <thead>
-                <tr className="bg-surface-container-low/50 text-[10px] uppercase tracking-widest font-bold text-outline">
-                  <th className="px-6 py-3.5">Exam</th>
-                  <th className="px-6 py-3.5">Student</th>
-                  <th className="px-6 py-3.5">Status</th>
-                  <th className="px-6 py-3.5 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-outline-variant/10">
-                {recentActivity.map((item) => (
-                  <tr key={item.id} onClick={() => navigate(item.route)} className="hover:bg-surface-container-low/50 transition-colors cursor-pointer group">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <span className="material-symbols-outlined text-primary/40 group-hover:text-primary transition-colors">description</span>
-                        <div>
-                          <p className="font-semibold text-sm text-on-surface">{item.name}</p>
-                          <p className="text-[10px] font-bold text-outline uppercase tracking-wider">{item.batch}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[9px]">{item.initials}</div>
-                        <span className="text-sm text-on-surface-variant">{item.student}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <span className={`w-1.5 h-1.5 rounded-full ${statusColors[item.statusColor]}`}></span>
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">{item.status}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button className="p-1.5 hover:bg-surface-container-highest rounded-lg text-outline-variant hover:text-primary transition-colors">
-                        <span className="material-symbols-outlined text-lg">chevron_right</span>
-                      </button>
-                    </td>
+            {loading ? (
+              <div className="flex justify-center py-16">
+                <Spinner size="lg" />
+              </div>
+            ) : exams.length > 0 ? (
+              <table className="w-full text-left border-collapse min-w-[600px]">
+                <thead>
+                  <tr className="bg-surface-container-low/50 text-[10px] uppercase tracking-widest font-bold text-outline">
+                    <th className="px-6 py-3.5">Exam</th>
+                    <th className="px-6 py-3.5">Subject</th>
+                    <th className="px-6 py-3.5">Marks</th>
+                    <th className="px-6 py-3.5">Status</th>
+                    <th className="px-6 py-3.5 text-right">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-outline-variant/10">
+                  {exams.slice(0, 5).map((exam) => (
+                    <tr key={exam.id} onClick={() => navigate(`/exams/${exam.id}`)} className="hover:bg-surface-container-low/50 transition-colors cursor-pointer group">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <span className="material-symbols-outlined text-primary/40 group-hover:text-primary transition-colors">description</span>
+                          <p className="font-semibold text-sm text-on-surface">{exam.title || exam.name}</p>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-on-surface-variant">{exam.subject}</td>
+                      <td className="px-6 py-4 text-sm text-on-surface-variant font-medium">{exam.total_marks}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <span className={`w-1.5 h-1.5 rounded-full ${statusColors[exam.status] || 'bg-gray-400'}`}></span>
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">{statusLabels[exam.status] || exam.status}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button className="p-1.5 hover:bg-surface-container-highest rounded-lg text-outline-variant hover:text-primary transition-colors">
+                          <span className="material-symbols-outlined text-lg">chevron_right</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="text-center py-16">
+                <span className="material-symbols-outlined text-outline text-4xl mb-3 block">menu_book</span>
+                <p className="text-sm text-on-surface-variant mb-4">No exams yet. Create your first evaluation!</p>
+                <button 
+                  onClick={() => navigate('/create-exam')}
+                  className="px-6 py-2.5 bg-primary text-white font-bold rounded-lg text-sm hover:opacity-90 transition-opacity"
+                >
+                  Create Exam
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

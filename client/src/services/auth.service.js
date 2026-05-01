@@ -1,5 +1,4 @@
 import api from './api';
-import { supabase } from '../config/supabase';
 
 export const authService = {
   login: async (email, password) => {
@@ -23,20 +22,8 @@ export const authService = {
   },
 
   logout: async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user');
     return true;
-  },
-
-  signInWithProvider: async (provider) => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: provider.toLowerCase(),
-      options: {
-        redirectTo: window.location.origin + '/dashboard',
-      },
-    });
-
-    if (error) throw error;
-    return data;
   }
 };

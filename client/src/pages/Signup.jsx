@@ -16,7 +16,7 @@ const Signup = () => {
     confirmPassword: ''
   });
 
-  const { signup: registerUser, signInWithProvider } = useAuth();
+  const { signup: registerUser } = useAuth();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -45,20 +45,7 @@ const Signup = () => {
     }
   };
 
-  const handleSSO = (provider) => async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    addToast(`Connecting to ${provider}...`, 'info');
-    try {
-      await signInWithProvider(provider);
-      addToast(`${provider} login successful`, 'success');
-      navigate('/dashboard');
-    } catch (err) {
-      addToast(err.message || `${provider} login failed`, 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   return (
     <div className="bg-background text-on-surface min-h-screen flex flex-col items-center justify-center relative overflow-hidden py-12">
@@ -165,19 +152,7 @@ const Signup = () => {
             </div>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-outline-variant/10">
-            <p className="text-center text-[10px] font-bold text-outline uppercase tracking-widest mb-5">Or sign up with</p>
-            <div className="grid grid-cols-2 gap-3">
-              <button type="button" onClick={handleSSO('Google')} className="flex items-center justify-center gap-2 py-2.5 px-4 bg-surface-container-low hover:bg-surface-container-high rounded-xl text-sm font-medium text-on-surface transition-colors">
-                <img alt="Google" className="w-4 h-4" src="https://www.google.com/favicon.ico" />
-                <span>Google</span>
-              </button>
-              <button type="button" onClick={handleSSO('Apple')} className="flex items-center justify-center gap-2 py-2.5 px-4 bg-surface-container-low hover:bg-surface-container-high rounded-xl text-sm font-medium text-on-surface transition-colors">
-                <span className="material-symbols-outlined text-lg">apple</span>
-                <span>Apple</span>
-              </button>
-            </div>
-          </div>
+
         </div>
 
         <div className="mt-8 text-center">

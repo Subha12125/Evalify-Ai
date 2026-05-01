@@ -1,26 +1,66 @@
 import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
+import { evaluationService } from '../services/evaluation.service';
+import { examService } from '../services/exam.service';
 
 const CreateExam = () => {
   const navigate = useNavigate();
   const { addToast } = useToast();
   
   const [files, setFiles] = useState([]);
+  const [examTitle, setExamTitle] = useState('');
+  const [examSubject, setExamSubject] = useState('');
+  const [totalMarks, setTotalMarks] = useState('');
+  const [evaluating, setEvaluating] = useState(false);
   
   const questionPaperRef = useRef(null);
   const rubricRef = useRef(null);
   const answerSheetsRef = useRef(null);
 
-  const handleStartEvaluation = () => {
+  const handleStartEvaluation = async () => {
     if (files.length === 0) {
       addToast('Please upload at least one document to begin.', 'error');
       return;
     }
-    addToast('AI engines initializing. Processing documents...');
-    setTimeout(() => {
-      navigate('/evaluation-progress');
-    }, 1500);
+
+    const answerSheets = files.filter(f => f.type === 'answer_sheet');
+    if (answerSheets.length === 0) {
+      addToast('Please upload at least one answer sheet.', 'error');
+      return;
+    }
+
+    if (!examTitle.trim() || !examSubject.trim() || !totalMarks) {
+      addToast('Please fill in exam title, subject, and total marks.', 'error');
+      return;
+    }
+
+    setEvaluating(true);
+    try {
+      addToast('Creating exam record...');
+      
+      // Step 1: Create the exam to get a real UUID
+      const { exam } = await examService.createExam({
+        title: examTitle.trim(),
+        subject: examSubject.trim(),
+        totalMarks: parseInt(totalMarks, 10),
+      });
+
+      addToast('Uploading and initializing AI engines...');
+
+      // Step 2: Start evaluation with the real exam ID
+      await evaluationService.startEvaluation(exam.id, answerSheets);
+      
+      addToast('Documents received. AI processing started.', 'success');
+      setTimeout(() => {
+        navigate(`/evaluation-progress?examId=${exam.id}`);
+      }, 1500);
+    } catch (err) {
+      const message = err.response?.data?.error || err.message || 'Failed to start evaluation';
+      addToast(message, 'error');
+    } finally {
+      setEvaluating(false);
+    }
   };
 
   const handleFileSelect = (e, type) => {
@@ -63,8 +103,53 @@ const CreateExam = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Main Content Area: The Drop Zones */}
+        {/* Main Content Area */}
         <div className="lg:col-span-8 space-y-8 order-2 lg:order-1">
+          {/* Exam Details */}
+          <div className="bg-white rounded-xl p-6 sm:p-8 atmospheric-shadow shadow-sm">
+            <h3 className="font-headline font-bold text-base sm:text-lg mb-4 flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">edit_note</span>
+              Exam Details
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-on-surface uppercase tracking-widest" htmlFor="examTitle">Exam Title</label>
+                <input
+                  id="examTitle"
+                  className="w-full px-4 py-3 bg-surface-container-high/50 rounded-lg focus:ring-2 focus:ring-primary/40 text-on-surface placeholder:text-outline text-sm transition-all border-none"
+                  placeholder="e.g. Midterm Exam 2026"
+                  value={examTitle}
+                  onChange={(e) => setExamTitle(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-on-surface uppercase tracking-widest" htmlFor="examSubject">Subject</label>
+                <input
+                  id="examSubject"
+                  className="w-full px-4 py-3 bg-surface-container-high/50 rounded-lg focus:ring-2 focus:ring-primary/40 text-on-surface placeholder:text-outline text-sm transition-all border-none"
+                  placeholder="e.g. Computer Science"
+                  value={examSubject}
+                  onChange={(e) => setExamSubject(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-on-surface uppercase tracking-widest" htmlFor="totalMarks">Total Marks</label>
+                <input
+                  id="totalMarks"
+                  className="w-full px-4 py-3 bg-surface-container-high/50 rounded-lg focus:ring-2 focus:ring-primary/40 text-on-surface placeholder:text-outline text-sm transition-all border-none"
+                  placeholder="e.g. 100"
+                  type="number"
+                  min="1"
+                  value={totalMarks}
+                  onChange={(e) => setTotalMarks(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div 
               onClick={() => questionPaperRef.current?.click()}
@@ -96,7 +181,7 @@ const CreateExam = () => {
               onClick={() => answerSheetsRef.current?.click()}
               className="sm:col-span-2 bg-white rounded-xl p-6 sm:p-10 atmospheric-shadow border-2 border-dashed border-outline-variant/20 hover:border-primary/40 transition-all group cursor-pointer flex flex-col items-center relative overflow-hidden text-center min-h-[300px] shadow-sm"
             >
-              <input type="file" ref={answerSheetsRef} onChange={(e) => handleFileSelect(e, 'answer_sheet')} className="hidden" accept="image/*,.pdf" multiple webkitdirectory="false" />
+              <input type="file" ref={answerSheetsRef} onChange={(e) => handleFileSelect(e, 'answer_sheet')} className="hidden" accept="image/*,.pdf" multiple />
               <div className="absolute -right-20 -top-20 w-48 sm:w-64 h-48 sm:h-64 bg-primary/5 rounded-full blur-3xl"></div>
               <div className="w-16 sm:w-20 h-16 sm:h-20 rounded-2xl bg-primary flex items-center justify-center mb-6 shadow-lg shadow-primary/20 group-hover:-translate-y-1 transition-transform relative z-10">
                 <span className="material-symbols-outlined text-white text-3xl sm:text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>file_upload</span>
@@ -112,15 +197,28 @@ const CreateExam = () => {
             <button 
               onClick={() => navigate('/dashboard')}
               className="text-outline font-bold flex items-center gap-2 hover:text-on-surface transition-colors order-2 sm:order-1 text-sm active:scale-95"
+              disabled={evaluating}
             >
               <span className="material-symbols-outlined">arrow_back</span>
               Cancel
             </button>
             <button 
               onClick={handleStartEvaluation}
-              className={`w-full sm:w-auto px-10 py-4 rounded-xl font-headline font-bold text-lg shadow-xl shadow-primary/20 transition-all order-1 sm:order-2 ${files.length > 0 ? 'bg-gradient-to-r from-primary to-primary-container text-white hover:scale-[1.02] active:scale-95' : 'bg-surface-container-high text-on-surface-variant pointer-events-none'}`}
+              disabled={evaluating || files.length === 0}
+              className={`w-full sm:w-auto px-10 py-4 rounded-xl font-headline font-bold text-lg shadow-xl shadow-primary/20 transition-all order-1 sm:order-2 flex items-center justify-center gap-2 ${
+                evaluating ? 'bg-primary/70 text-white pointer-events-none' :
+                files.length > 0 ? 'bg-gradient-to-r from-primary to-primary-container text-white hover:scale-[1.02] active:scale-95' : 
+                'bg-surface-container-high text-on-surface-variant pointer-events-none'
+              }`}
             >
-              Start Evaluation
+              {evaluating ? (
+                <>
+                  <span className="material-symbols-outlined text-lg animate-spin">progress_activity</span>
+                  Processing...
+                </>
+              ) : (
+                'Start Evaluation'
+              )}
             </button>
           </div>
         </div>

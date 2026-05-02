@@ -1,8 +1,15 @@
 import { create } from 'zustand';
 
 export const useAuthStore = create((set) => ({
-  user: JSON.parse(localStorage.getItem('user')) || { name: 'Dr. Sterling', email: 'sterling@university.edu', role: 'Faculty Head' },
-  isAuthenticated: !!localStorage.getItem('auth_token') || true,
+  user: (() => {
+    try {
+      const saved = localStorage.getItem('user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  })(),
+  isAuthenticated: !!localStorage.getItem('auth_token'),
   loading: false,
   error: null,
 

@@ -21,7 +21,7 @@ export const useExam = () => {
     setLoading(true);
     try {
       const data = await examService.getExams();
-      setExams(data);
+      setExams(data.exams || []);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch exams');
     } finally {
@@ -33,7 +33,7 @@ export const useExam = () => {
     setLoading(true);
     try {
       const data = await examService.getExamById(id);
-      setCurrentExam(data);
+      setCurrentExam(data.exam || data);
       return data;
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch exam');
@@ -46,7 +46,7 @@ export const useExam = () => {
     setLoading(true);
     try {
       const data = await examService.createExam(examData);
-      addExam(data);
+      addExam(data.exam || data);
       return data;
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create exam');

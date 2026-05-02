@@ -3,26 +3,24 @@ import api from './api';
 export const evaluationService = {
   startEvaluation: async (examId, files) => {
     const formData = new FormData();
-    files.forEach((file) => formData.append('files', file));
+    files.forEach((file) => {
+      formData.append('answerSheets', file.originalFile);
+    });
+    formData.append('examId', examId);
     
-    const response = await api.post(`/evaluations/start/${examId}`, formData, {
+    const response = await api.post('/evaluate', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
     return response.data;
   },
 
-  getEvaluationStatus: async (evaluationId) => {
-    const response = await api.get(`/evaluations/status/${evaluationId}`);
+  getEvaluationStatus: async (examId) => {
+    const response = await api.get(`/evaluate/status/${examId}`);
     return response.data;
   },
 
   getEvaluationResults: async (examId) => {
-    const response = await api.get(`/evaluations/results/${examId}`);
+    const response = await api.get(`/results/${examId}`);
     return response.data;
   },
-
-  submitFeedback: async (resultId, feedback) => {
-    const response = await api.post(`/evaluations/feedback/${resultId}`, feedback);
-    return response.data;
-  }
 };

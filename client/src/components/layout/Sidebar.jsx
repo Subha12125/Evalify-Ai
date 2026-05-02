@@ -1,8 +1,10 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const menuItems = [
     { name: 'Dashboard', path: '/dashboard', icon: 'grid_view' },
@@ -62,13 +64,15 @@ const Sidebar = ({ isOpen, onClose }) => {
           </NavLink>
 
           <div className="flex items-center gap-3 px-2 py-2">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-xs font-headline">DS</div>
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-xs font-headline">
+              {user?.name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'P'}
+            </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-on-surface truncate">Dr. Sterling</p>
-              <p className="text-[10px] text-on-surface-variant truncate">Faculty Head</p>
+              <p className="text-xs font-bold text-on-surface truncate">{user?.name || 'Professor'}</p>
+              <p className="text-[10px] text-on-surface-variant truncate">{user?.role || 'Faculty Member'}</p>
             </div>
             <button
-              onClick={() => { window.location.href = '/login'; }}
+              onClick={logout}
               className="p-2 rounded-lg text-on-surface-variant hover:text-error hover:bg-error/5 transition-all"
             >
               <span className="material-symbols-outlined text-lg">logout</span>

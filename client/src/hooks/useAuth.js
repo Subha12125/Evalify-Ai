@@ -1,8 +1,10 @@
 import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { authService } from '../services/auth.service';
 
 export const useAuth = () => {
+  const navigate = useNavigate();
   const { user, isAuthenticated, loading, error, setLoading, setError, login, logout } = useAuthStore();
 
   const handleLogin = useCallback(async (email, password) => {
@@ -42,8 +44,11 @@ export const useAuth = () => {
       await authService.logout();
     } finally {
       logout();
+      navigate('/login');
     }
-  }, [logout]);
+  }, [logout, navigate]);
+
+
 
   return {
     user,

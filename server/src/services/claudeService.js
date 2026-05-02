@@ -1,6 +1,14 @@
 const genAI = require('../config/claude');
 const logger = require('../utils/logger');
 
+const MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+const MAX_RETRIES = 2;
+const RETRY_DELAY_MS = 40000; // 40 seconds (API suggests ~35s)
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 const GeminiService = {
   /**
    * Send images + prompt to Gemini Vision API for evaluation.
@@ -9,8 +17,6 @@ const GeminiService = {
    * @returns {string} Raw text response from Gemini
    */
   async evaluate(prompt, images = []) {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-
     const parts = [];
 
     // Add images as inline data
@@ -28,17 +34,42 @@ const GeminiService = {
 
     logger.info(`Sending ${images.length} image(s) to Gemini for evaluation`);
 
-    const result = await model.generateContent(parts);
-    const response = result.response;
-    const text = response.text();
+    // Try each model with retries
+    for (const modelName of MODELS) {
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          const model = genAI.getGenerativeModel({ model: modelName });
+          const result = await model.generateContent(parts);
+          const response = result.response;
+          const text = response.text();
 
-    if (!text) {
-      throw new Error('No text response from Gemini');
+          if (!text) {
+            throw new Error('No text response from Gemini');
+          }
+
+          logger.info(`Gemini evaluation response received (model: ${modelName}, attempt: ${attempt})`);
+          return text;
+        } catch (err) {
+          const isRateLimit = err.message?.includes('429') || err.message?.includes('quota') || err.message?.includes('Too Many Requests');
+
+          if (isRateLimit && attempt < MAX_RETRIES) {
+            logger.warn(`Rate limited on ${modelName} (attempt ${attempt}/${MAX_RETRIES}). Retrying in ${RETRY_DELAY_MS / 1000}s...`);
+            await sleep(RETRY_DELAY_MS);
+            continue;
+          }
+
+          if (isRateLimit) {
+            logger.warn(`Rate limited on ${modelName}, trying next model...`);
+            break; // Try next model
+          }
+
+          // Non-rate-limit error, throw immediately
+          throw err;
+        }
+      }
     }
 
-    logger.info('Gemini evaluation response received');
-
-    return text;
+    throw new Error('All Gemini models exhausted. API quota exceeded. Please wait and try again, or upgrade your API plan at https://ai.google.dev/pricing');
   },
 
   /**

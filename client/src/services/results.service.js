@@ -2,24 +2,19 @@ import api from './api';
 
 export const resultsService = {
   getExamResults: async (examId) => {
-    const response = await api.get(`/results/exam/${examId}`);
+    const response = await api.get(`/results/${examId}`);
     return response.data;
   },
 
-  getStudentResult: async (resultId) => {
-    const response = await api.get(`/results/${resultId}`);
+  getStudentResult: async (examId, studentId) => {
+    const response = await api.get(`/results/${examId}/student/${studentId}`);
     return response.data;
   },
 
   exportResults: async (examId, format = 'csv') => {
-    const response = await api.get(`/results/export/${examId}?format=${format}`, {
-      responseType: 'blob'
+    const response = await api.get(`/results/${examId}/export/${format}`, {
+      responseType: format === 'csv' ? 'blob' : 'json'
     });
     return response.data;
   },
-
-  updateMarks: async (resultId, marks) => {
-    const response = await api.patch(`/results/${resultId}/marks`, { marks });
-    return response.data;
-  }
 };

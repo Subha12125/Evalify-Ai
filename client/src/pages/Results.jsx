@@ -1,27 +1,75 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
-import { useEvaluation } from '../hooks/useEvaluation';
-import MarksTable from '../components/results/MarksTable';
+import { useExam } from '../hooks/useExam';
+import { resultsService } from '../services/results.service';
 import ScoreCard from '../components/evaluation/ScoreCard';
 import Spinner from '../components/ui/Spinner';
 
 const Results = () => {
   const navigate = useNavigate();
-  const { evaluations, loading, fetchResults } = useEvaluation();
-  const [filter, setFilter] = useState('all');
+  const { exams, loading: examsLoading, fetchExams } = useExam();
   const { addToast } = useToast();
+  const [selectedExamId, setSelectedExamId] = useState(null);
+  const [results, setResults] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [resultsLoading, setResultsLoading] = useState(false);
 
   useEffect(() => {
-    fetchResults();
-  }, [fetchResults]);
+    fetchExams();
+  }, [fetchExams]);
 
-  const mockData = [
-    { id: 1, name: 'Alex Harrison', rollNo: 'CS2024-001', score: 94, totalMarks: 100, accuracy: 98, status: 'completed' },
-    { id: 2, name: 'Sarah Miller', rollNo: 'CS2024-002', score: 82, totalMarks: 100, accuracy: 92, status: 'completed' },
-    { id: 3, name: 'James Wilson', rollNo: 'CS2024-003', score: 45, totalMarks: 100, accuracy: 88, status: 'failed' },
-    { id: 4, name: 'Elena Rodriguez', rollNo: 'CS2024-004', score: 92, totalMarks: 100, accuracy: 95, status: 'completed' },
-  ];
+  // Auto-select first completed exam
+  useEffect(() => {
+    if (!selectedExamId && exams.length > 0) {
+      const completed = exams.find(e => e.status === 'completed');
+      if (completed) setSelectedExamId(completed.id);
+      else setSelectedExamId(exams[0].id);
+    }
+  }, [exams, selectedExamId]);
+
+  // Fetch results when exam selected
+  useEffect(() => {
+    if (!selectedExamId) return;
+    setResultsLoading(true);
+    resultsService.getExamResults(selectedExamId)
+      .then(data => {
+        setResults(data.results || []);
+        setStats(data.stats || null);
+      })
+      .catch(() => {
+        setResults([]);
+        setStats(null);
+      })
+      .finally(() => setResultsLoading(false));
+  }, [selectedExamId]);
+
+  const selectedExam = exams.find(e => e.id === selectedExamId);
+  const avgScore = results.length > 0 
+    ? (results.reduce((sum, r) => sum + (r.total_marks_awarded || 0), 0) / results.length).toFixed(1)
+    : '—';
+  const maxMarks = selectedExam?.total_marks || 100;
+
+  const handleExport = async (format) => {
+    if (!selectedExamId) return;
+    try {
+      addToast(`Exporting ${format.toUpperCase()}...`, 'info');
+      const data = await resultsService.exportResults(selectedExamId, format);
+      
+      if (format === 'csv') {
+        const blob = new Blob([data], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `results-${selectedExamId}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+      addToast('Export downloaded!', 'success');
+    } catch (err) {
+      addToast('Export failed. No results to export.', 'error');
+    }
+  };
 
   return (
     <div className="relative min-h-full">
@@ -31,90 +79,152 @@ const Results = () => {
         <div className="absolute top-[50px] right-[10%] w-[300px] h-[300px] bg-secondary/20 rounded-full blur-[80px] animate-pulse delay-700" />
       </div>
 
-      {/* Premium Header */}
+      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12 relative z-10">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/60 backdrop-blur-md border border-white/40 shadow-sm mb-4">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700">Live Analytics</span>
+            <span className={`w-2 h-2 rounded-full ${results.length > 0 ? 'bg-emerald-500 animate-ping' : 'bg-gray-400'}`} />
+            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700">
+              {results.length > 0 ? 'Live Analytics' : 'No Data'}
+            </span>
           </div>
           <h1 className="text-4xl sm:text-5xl font-black font-headline text-on-surface tracking-tighter mb-3 leading-tight">
             Examination <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Results</span>
           </h1>
           <p className="text-on-surface-variant font-medium text-sm sm:text-base max-w-xl leading-relaxed">
-            Advanced analytics for CS102: Data Structures & Algorithms. View granular performance metrics and AI-driven insights.
+            {selectedExam 
+              ? `Results for ${selectedExam.title} — ${selectedExam.subject}`
+              : 'Select an exam to view results and AI-driven insights.'}
           </p>
         </div>
         <div className="flex gap-3 w-full sm:w-auto">
           <button 
-            onClick={() => addToast('Exporting report to PDF...', 'info')}
+            onClick={() => handleExport('csv')}
             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-white text-on-surface-variant font-bold hover:text-primary transition-all shadow-sm border border-outline-variant/10 hover:shadow-md hover:-translate-y-0.5"
           >
             <span className="material-symbols-outlined text-sm">download</span>
             Export
           </button>
           <button 
-            onClick={() => navigate('/evaluation-progress')}
+            onClick={() => navigate('/create-exam')}
             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-primary to-primary-container text-white font-bold hover:shadow-xl hover:shadow-primary/30 transition-all border-none hover:-translate-y-0.5"
           >
-            <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-            Recalculate
+            <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>add</span>
+            New Evaluation
           </button>
         </div>
       </div>
+
+      {/* Exam Selector */}
+      {exams.length > 1 && (
+        <div className="mb-8 flex flex-wrap gap-2">
+          {exams.map(exam => (
+            <button
+              key={exam.id}
+              onClick={() => setSelectedExamId(exam.id)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                selectedExamId === exam.id
+                  ? 'bg-primary text-white shadow-md'
+                  : 'bg-white text-on-surface-variant hover:bg-primary/5 border border-outline-variant/10'
+              }`}
+            >
+              {exam.title}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="grid grid-cols-12 gap-8">
         <div className="col-span-12 lg:col-span-8 space-y-10">
           {/* Metrics Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-            <ScoreCard label="Batch Average" value="78.4%" icon="trending_up" color="primary" subValue="+4.2% vs last year" />
-            <ScoreCard label="Evaluation Progress" value="100%" icon="check_circle" color="secondary" />
-            <ScoreCard label="Flagged for Review" value="12" icon="error" color="error" />
-            <ScoreCard label="AI Confidence" value="98.2%" icon="verified" color="success" noBg={true} />
+            <ScoreCard label="Average Score" value={avgScore} icon="trending_up" color="primary" subValue={`/ ${maxMarks}`} />
+            <ScoreCard label="Students" value={String(results.length)} icon="people" color="secondary" subValue="Evaluated" />
+            <ScoreCard label="Exam Status" value={selectedExam?.status || '—'} icon={selectedExam?.status === 'completed' ? 'check_circle' : 'pending'} color={selectedExam?.status === 'completed' ? 'success' : 'error'} />
+            <ScoreCard label="Max Marks" value={String(maxMarks)} icon="grade" color="success" />
           </div>
  
-          {/* Table Section */}
+          {/* Results Table */}
           <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl shadow-surface-container-highest/20 border border-white overflow-hidden atmospheric-shadow">
             <div className="p-8 sm:p-10 border-b border-outline-variant/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
               <div>
-                <h2 className="font-headline font-extrabold text-2xl text-on-surface tracking-tight mb-1">Performance Matrix</h2>
-                <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Individual Student Records</p>
-              </div>
-              
-              {/* Segmented Control */}
-              <div className="flex p-1 bg-surface-container-highest/30 rounded-xl">
-                <button 
-                  onClick={() => setFilter('all')}
-                  className={`px-6 py-2 rounded-lg text-xs font-bold transition-all ${filter === 'all' ? 'bg-white text-on-surface shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
-                >
-                  All ({mockData.length})
-                </button>
-                <button 
-                  onClick={() => setFilter('flagged')}
-                  className={`px-6 py-2 rounded-lg text-xs font-bold transition-all ${filter === 'flagged' ? 'bg-white text-error shadow-sm' : 'text-on-surface-variant hover:text-error'}`}
-                >
-                  Flagged (12)
-                </button>
+                <h2 className="font-headline font-extrabold text-2xl text-on-surface tracking-tight mb-1">Student Results</h2>
+                <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">
+                  {selectedExam ? selectedExam.title : 'Select an exam'}
+                </p>
               </div>
             </div>
             
             <div className="p-2">
-              {loading ? (
+              {examsLoading || resultsLoading ? (
                 <div className="py-32 flex flex-col items-center justify-center gap-4">
                   <Spinner size="lg" />
-                  <p className="text-sm font-bold text-on-surface-variant uppercase tracking-widest animate-pulse">Loading Matrix...</p>
+                  <p className="text-sm font-bold text-on-surface-variant uppercase tracking-widest animate-pulse">Loading Results...</p>
+                </div>
+              ) : results.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse min-w-[600px]">
+                    <thead>
+                      <tr className="text-[10px] font-bold uppercase tracking-widest text-outline">
+                        <th className="px-8 py-4">Student</th>
+                        <th className="px-8 py-4">Roll No</th>
+                        <th className="px-8 py-4">Score</th>
+                        <th className="px-8 py-4">Percentage</th>
+                        <th className="px-8 py-4">Feedback</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-outline-variant/10">
+                      {results.map((result, idx) => {
+                        const pct = maxMarks > 0 ? Math.round((result.total_marks_awarded / maxMarks) * 100) : 0;
+                        return (
+                          <tr key={result.id || idx} className="hover:bg-surface-container-low/50 transition-colors">
+                            <td className="px-8 py-5">
+                              <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+                                  {(result.students?.name || 'S')[0]}
+                                </div>
+                                <span className="font-semibold text-sm text-on-surface">{result.students?.name || 'Student'}</span>
+                              </div>
+                            </td>
+                            <td className="px-8 py-5 text-sm text-on-surface-variant font-medium">{result.students?.roll_number || '—'}</td>
+                            <td className="px-8 py-5">
+                              <span className="text-lg font-black text-primary">{result.total_marks_awarded}</span>
+                              <span className="text-sm text-outline">/{result.total_max_marks || maxMarks}</span>
+                            </td>
+                            <td className="px-8 py-5">
+                              <div className="flex items-center gap-2">
+                                <div className="w-20 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+                                  <div 
+                                    className={`h-full rounded-full ${pct >= 70 ? 'bg-emerald-500' : pct >= 40 ? 'bg-amber-500' : 'bg-red-500'}`}
+                                    style={{ width: `${pct}%` }}
+                                  />
+                                </div>
+                                <span className="text-xs font-bold text-on-surface">{pct}%</span>
+                              </div>
+                            </td>
+                            <td className="px-8 py-5 text-xs text-on-surface-variant max-w-[200px] truncate">{result.overall_feedback || '—'}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               ) : (
-                <MarksTable 
-                  data={evaluations.length > 0 ? evaluations : mockData} 
-                  onRowClick={(row) => navigate(`/exams/${row.id}`)}
-                />
+                <div className="py-20 text-center">
+                  <span className="material-symbols-outlined text-outline text-4xl mb-3 block">assignment</span>
+                  <p className="text-sm text-on-surface-variant mb-2">No results available for this exam</p>
+                  <p className="text-xs text-outline">
+                    {selectedExam?.status === 'pending' ? 'This exam hasn\'t been evaluated yet.' : 
+                     selectedExam?.status === 'failed' ? 'Evaluation failed. Try again from Create Exam.' :
+                     'Results will appear after evaluation completes.'}
+                  </p>
+                </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* Right Rail: AI Insights */}
+        {/* Right Rail */}
         <div className="col-span-12 lg:col-span-4 lg:order-2">
           <aside className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] p-8 shadow-xl shadow-surface-container-highest/20 border border-white atmospheric-shadow sticky top-28 text-on-surface relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-64 h-64 bg-secondary/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/4 group-hover:bg-secondary/10 transition-colors duration-1000"></div>
@@ -124,50 +234,50 @@ const Results = () => {
                 <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary">
                   <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>psychology</span>
                 </div>
-                <h4 className="font-headline font-extrabold text-sm uppercase tracking-widest text-secondary">AI Intelligence</h4>
+                <h4 className="font-headline font-extrabold text-sm uppercase tracking-widest text-secondary">Summary</h4>
               </div>
-              <span className="flex h-3 w-3 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-secondary"></span>
-              </span>
             </div>
             
             <div className="space-y-8 relative z-10">
-              {/* Critical Insight */}
-              <div onClick={() => addToast('Opening detailed AI insight report...', 'info')} className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/10 hover:border-warning/30 transition-colors cursor-pointer group/card shadow-sm hover:shadow-md">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="material-symbols-outlined text-warning text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>warning</span>
-                  <p className="text-[10px] font-bold text-warning uppercase tracking-widest">Performance Bottleneck</p>
+              {/* Exam Info */}
+              {selectedExam && (
+                <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/10 shadow-sm">
+                  <p className="text-[10px] font-bold text-outline uppercase tracking-widest mb-3">Selected Exam</p>
+                  <p className="text-lg font-bold text-on-surface font-headline mb-1">{selectedExam.title}</p>
+                  <p className="text-sm text-on-surface-variant">{selectedExam.subject}</p>
+                  <div className="flex gap-3 mt-3">
+                    <span className="px-2 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded">{selectedExam.total_marks} marks</span>
+                    <span className={`px-2 py-1 text-[10px] font-bold rounded ${
+                      selectedExam.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                    }`}>{selectedExam.status}</span>
+                  </div>
                 </div>
-                <p className="text-lg font-bold mb-2 text-on-surface font-headline group-hover/card:text-secondary transition-colors">Linked List Logic</p>
-                <p className="text-sm text-on-surface-variant leading-relaxed mb-4">64% of students struggled with Question 4. The model detects fundamental misunderstanding of pointer allocation.</p>
-                <div className="flex items-center text-xs font-bold text-secondary gap-1 group-hover/card:translate-x-1 transition-transform">
-                  <span>View detailed analysis</span>
-                  <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-                </div>
-              </div>
+              )}
 
-              {/* Popular Feedback */}
-              <div>
-                <p className="text-[10px] font-bold text-outline uppercase mb-4 tracking-widest">Common Auto-Corrections</p>
-                <div className="flex flex-wrap gap-2">
-                  <span className="px-4 py-2 rounded-xl bg-surface-container-high border border-transparent text-[10px] font-bold text-on-surface-variant uppercase hover:bg-secondary/10 hover:text-secondary hover:border-secondary/20 transition-all cursor-pointer">"Optimized loop" (42)</span>
-                  <span className="px-4 py-2 rounded-xl bg-surface-container-high border border-transparent text-[10px] font-bold text-on-surface-variant uppercase hover:bg-secondary/10 hover:text-secondary hover:border-secondary/20 transition-all cursor-pointer">"Memory leak" (18)</span>
-                </div>
-              </div>
-
-              {/* Engine Status */}
-              <div className="pt-8 border-t border-outline-variant/10">
-                <p className="text-[10px] font-bold text-outline uppercase mb-4 tracking-widest">System Telemetry</p>
+              {/* Stats */}
+              <div className="pt-4 border-t border-outline-variant/10">
+                <p className="text-[10px] font-bold text-outline uppercase mb-4 tracking-widest">Analytics</p>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="font-semibold text-on-surface-variant">OCR Confidence</span>
-                    <span className="font-bold text-emerald-600">99.8%</span>
+                    <span className="font-semibold text-on-surface-variant">Total Students</span>
+                    <span className="font-bold text-on-surface">{results.length}</span>
                   </div>
                   <div className="flex justify-between items-center text-xs">
-                    <span className="font-semibold text-on-surface-variant">Processing Time</span>
-                    <span className="font-bold text-on-surface">14.2s</span>
+                    <span className="font-semibold text-on-surface-variant">Average Score</span>
+                    <span className="font-bold text-primary">{avgScore}</span>
                   </div>
+                  {stats?.highest !== undefined && (
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-semibold text-on-surface-variant">Highest</span>
+                      <span className="font-bold text-emerald-600">{stats.highest}</span>
+                    </div>
+                  )}
+                  {stats?.lowest !== undefined && (
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-semibold text-on-surface-variant">Lowest</span>
+                      <span className="font-bold text-red-600">{stats.lowest}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

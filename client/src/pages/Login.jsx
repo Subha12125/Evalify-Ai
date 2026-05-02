@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../hooks/useAuth';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -8,14 +9,23 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { login: authenticate } = useAuth();
+
+  const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     addToast('Authenticating...', 'info');
-    setTimeout(() => {
+    try {
+      await authenticate(email, password);
       addToast('Login successful', 'success');
       navigate('/dashboard');
-    }, 800);
+    } catch (err) {
+      addToast(err.message || 'Login failed', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleForgotPassword = (e) => {
@@ -28,15 +38,7 @@ const Login = () => {
     addToast('Access request submitted to admin', 'success');
   };
 
-  const handleSSO = (provider) => (e) => {
-    e.preventDefault();
-    setLoading(true);
-    addToast(`Connecting to ${provider}...`, 'info');
-    setTimeout(() => {
-      addToast('SSO Login successful', 'success');
-      navigate('/dashboard');
-    }, 1000);
-  };
+
 
   return (
     <div className="bg-background text-on-surface min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
@@ -72,6 +74,8 @@ const Login = () => {
                 id="email"
                 placeholder="professor@university.edu"
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -87,6 +91,8 @@ const Login = () => {
                   id="password"
                   placeholder="••••••••"
                   type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                 />
                 <button
@@ -119,24 +125,12 @@ const Login = () => {
             </button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-outline-variant/10">
-            <p className="text-center text-[10px] font-bold text-outline uppercase tracking-widest mb-5">Or continue with</p>
-            <div className="grid grid-cols-2 gap-3">
-              <button type="button" onClick={handleSSO('Google SSO')} className="flex items-center justify-center gap-2 py-2.5 px-4 bg-surface-container-low hover:bg-surface-container-high rounded-xl text-sm font-medium text-on-surface transition-colors">
-                <img alt="Google" className="w-4 h-4" src="https://www.google.com/favicon.ico" />
-                <span>Google SSO</span>
-              </button>
-              <button type="button" onClick={handleSSO('LMS')} className="flex items-center justify-center gap-2 py-2.5 px-4 bg-surface-container-low hover:bg-surface-container-high rounded-xl text-sm font-medium text-on-surface transition-colors">
-                <span className="material-symbols-outlined text-lg">account_balance</span>
-                <span>LMS</span>
-              </button>
-            </div>
-          </div>
+
         </div>
 
         <div className="mt-8 text-center">
           <p className="text-xs text-on-surface-variant">
-            New to Evalify? <button type="button" onClick={handleRequestAccess} className="text-primary font-bold hover:underline">Request Access</button>
+            New to Evalify? <Link to="/signup" className="text-primary font-bold hover:underline">Create Account</Link>
           </p>
         </div>
       </main>

@@ -7,22 +7,23 @@ export const authService = {
   },
 
   signup: async (userData) => {
-    const response = await api.post('/auth/signup', userData);
+    const response = await api.post('/auth/register', userData);
     return response.data;
   },
 
   getProfile: async () => {
-    const response = await api.get('/auth/profile');
+    const response = await api.get('/auth/me');
     return response.data;
   },
 
   updateProfile: async (userData) => {
-    const response = await api.patch('/auth/profile', userData);
+    const response = await api.patch('/auth/me', userData);
     return response.data;
   },
 
   logout: async () => {
-    // Optionally call backend to invalidate token
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user');
     return true;
   }
 };

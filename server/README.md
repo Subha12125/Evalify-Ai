@@ -1,26 +1,57 @@
-# 🚀 Evalify AI — Server API Guide
+# 🧠 Evalify AI — Backend Engine
 
-## ⚙️ Setup
+The core evaluation engine for Evalify AI, powered by **Google Gemini 2.0/2.5 Flash**. This server handles automated grading of handwritten and printed exam papers, student management, and result analytics.
 
+---
+
+## ✨ Key Features
+
+- **🤖 AI Multi-Model Evaluation**: Uses Gemini Vision API to read and grade handwritten answer sheets.
+- **📄 Document Processing**: Automated extraction of questions from question paper images/PDFs.
+- **📊 Real-time Analytics**: Calculates averages, highest marks, and grade distributions.
+- **🔐 Secure Auth**: JWT-based authentication with Supabase integration.
+- **📥 Bulk Processing**: Support for uploading up to 50 answer sheets in a single batch.
+- **📤 Data Export**: Generate CSV reports of exam results for easy record-keeping.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Runtime**: [Node.js](https://nodejs.org/) (v18+)
+- **Framework**: [Express.js 5](https://expressjs.com/)
+- **AI Engine**: [Google Generative AI (Gemini)](https://ai.google.dev/)
+- **Database**: [Supabase](https://supabase.com/) (PostgreSQL)
+- **Security**: Helmet, CORS, Express-Rate-Limit, BCrypt
+- **Storage**: Multer (Local temp storage) + Supabase Storage (Planned)
+
+---
+
+## ⚙️ Quick Start
+
+### 1. Installation
 ```bash
 cd server
 npm install
 ```
 
-Create `.env` file:
+### 2. Environment Setup
+Create a `.env` file in the `server` root:
 
-```env
-PORT=5000
-NODE_ENV=development
-GEMINI_API_KEY=your_gemini_api_key
-SUPABASE_URL=your_supabase_url
-SUPABASE_SERVICE_KEY=your_supabase_service_key
-JWT_SECRET=your_jwt_secret
-CLIENT_URL=http://localhost:5173
-```
+| Variable | Description | Default |
+| :--- | :--- | :--- |
+| `PORT` | Server port | `5000` |
+| `NODE_ENV` | Environment mode | `development` |
+| `GEMINI_API_KEY` | Your Google AI Studio API Key | (Required) |
+| `SUPABASE_URL` | Supabase Project URL | (Required) |
+| `SUPABASE_SERVICE_KEY` | Supabase Service Role Key | (Required) |
+| `JWT_SECRET` | Secret key for JWT tokens | (Required) |
+| `CLIENT_URL` | Frontend application URL | `http://localhost:5173` |
 
-Run server:
+### 3. Database Setup
+Run the migration scripts located in the root `/supabase` directory (if available) or create the following tables in your Supabase SQL editor:
+- `users`, `exams`, `students`, `evaluations`, `results`.
 
+### 4. Run Development Server
 ```bash
 npm run dev
 ```
@@ -29,323 +60,69 @@ npm run dev
 
 ## 📁 Project Structure
 
-```
+```text
 server/
-├── config/
-│   ├── env.js            # Environment variable loader
-│   ├── supabase.js       # Supabase client
-│   └── claude.js         # Gemini AI client
-├── controllers/
-│   ├── auth.controller.js
-│   ├── exam.controller.js
-│   ├── evaluate.controller.js
-│   └── results.controller.js
-├── middleware/
-│   ├── auth.js           # JWT authentication
-│   ├── upload.js         # Multer file upload
-│   └── errorHandler.js   # Global error handler
-├── models/
-│   ├── exam.model.js
-│   ├── student.model.js
-│   ├── evaluation.model.js
-│   └── result.model.js
-├── routes/
-│   ├── index.js          # Route aggregator
-│   ├── auth.routes.js
-│   ├── exam.routes.js
-│   ├── evaluate.routes.js
-│   └── results.routes.js
-├── services/
-│   ├── claudeService.js      # Gemini AI service
-│   ├── pdfService.js         # PDF/image processing
-│   ├── evaluationService.js  # Core evaluation logic
-│   └── exportService.js      # CSV/PDF export
-├── utils/
-│   ├── logger.js
-│   ├── parser.js
-│   └── promptBuilder.js
-├── tests/
-│   └── setup.js
-├── uploads/              # Temp file storage
-├── app.js                # Express app config
-└── server.js             # Entry point
+├── src/
+│   ├── config/           # App configurations (Supabase, Gemini)
+│   ├── controllers/      # Request handlers
+│   ├── middleware/       # Auth, Upload, Error handling
+│   ├── models/           # Data access layers (Supabase wrappers)
+│   ├── routes/           # API route definitions
+│   ├── services/         # Core logic (AI Evaluation, PDF parsing)
+│   │   └── claudeService.js # Note: Uses Gemini (named for historical reasons)
+│   ├── utils/            # Shared utilities (Logger, Prompt Builders)
+│   ├── app.js            # Express app configuration
+│   └── server.js         # Entry point
+├── tests/                # Automated tests
+└── uploads/              # Temporary storage for file processing
 ```
 
 ---
 
-## 📡 API Endpoints
-
-### Health Check
-
-| Method | URL | Auth | Description |
-|--------|-----|------|-------------|
-| GET | `/api/health` | ❌ | Server status |
-
-**Example:**
-```
-GET http://localhost:5000/api/health
-```
-**Response:**
-```json
-{ "status": "ok", "timestamp": "2026-04-13T06:39:04.870Z" }
-```
-
----
+## 📡 API Reference
 
 ### 🔐 Authentication
 
-| Method | URL | Auth | Description |
-|--------|-----|------|-------------|
-| POST | `/api/auth/register` | ❌ | Register new user |
-| POST | `/api/auth/login` | ❌ | Login & get token |
-| GET | `/api/auth/me` | ✅ | Get current user |
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/auth/register` | Create a new faculty account |
+| `POST` | `/api/auth/login` | Authenticate and receive JWT |
+| `GET` | `/api/auth/me` | Get current user profile (Auth Required) |
 
-#### Register
+### 📝 Exam Management
 
-```
-POST http://localhost:5000/api/auth/register
-Content-Type: application/json
-```
-**Body:**
-```json
-{
-  "email": "faculty@example.com",
-  "password": "password123",
-  "name": "John Doe"
-}
-```
-**Response (201):**
-```json
-{
-  "user": {
-    "id": "uuid",
-    "email": "faculty@example.com",
-    "name": "John Doe",
-    "role": "faculty"
-  },
-  "token": "eyJhbGciOi..."
-}
-```
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/exams` | Create an exam with questions and rubric |
+| `GET` | `/api/exams` | List all exams created by the user |
+| `POST` | `/api/exams/extract-questions` | AI-extract questions from a JPG/PDF |
 
-#### Login
+### 🤖 Evaluation Engine
 
-```
-POST http://localhost:5000/api/auth/login
-Content-Type: application/json
-```
-**Body:**
-```json
-{
-  "email": "faculty@example.com",
-  "password": "password123"
-}
-```
-**Response (200):**
-```json
-{
-  "user": { "id": "uuid", "email": "...", "name": "...", "role": "faculty" },
-  "token": "eyJhbGciOi..."
-}
-```
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/evaluate` | Upload answer sheets & start evaluation |
+| `GET` | `/api/evaluate/status/:id` | Poll status of a running evaluation |
 
-#### Get Profile
+> **Note on File Uploads**: Answer sheets should be named `RollNo_StudentName.pdf` for optimal student identification.
 
-```
-GET http://localhost:5000/api/auth/me
-Authorization: Bearer <token>
-```
+### 📊 Results & Export
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/results/:examId` | Fetch all student scores for an exam |
+| `GET` | `/api/results/:examId/export/csv` | Download CSV gradebook |
 
 ---
 
-### 📝 Exams
+## ⚠️ AI Rate Limits & Retries
 
-> All exam routes require `Authorization: Bearer <token>` header.
-
-| Method | URL | Description |
-|--------|-----|-------------|
-| POST | `/api/exams` | Create exam |
-| GET | `/api/exams` | List all exams |
-| GET | `/api/exams/:id` | Get single exam |
-| DELETE | `/api/exams/:id` | Delete exam |
-| POST | `/api/exams/extract-questions` | Extract questions from image |
-
-#### Create Exam
-
-```
-POST http://localhost:5000/api/exams
-Authorization: Bearer <token>
-Content-Type: application/json
-```
-**Body:**
-```json
-{
-  "title": "DSA Midterm",
-  "subject": "Data Structures",
-  "totalMarks": 100,
-  "questions": [
-    { "text": "Explain stack vs queue", "marks": 10 },
-    { "text": "Write binary search code", "marks": 15 }
-  ],
-  "rubric": "Evaluate on correctness and clarity"
-}
-```
-
-#### Extract Questions from Image
-
-```
-POST http://localhost:5000/api/exams/extract-questions
-Authorization: Bearer <token>
-Content-Type: multipart/form-data
-```
-**Form Data:**
-- `questionPaper`: PDF or image file of question paper
+The server includes built-in resilience for the Gemini API:
+- **Exponential Backoff**: Automatically waits 40s if rate limited.
+- **Model Fallback**: If `gemini-2.5-flash` fails, it falls back to `gemini-2.0-flash`.
+- **Max Retries**: Attempts each request twice before failing.
 
 ---
 
-### 🤖 Evaluation
-
-> All evaluation routes require `Authorization: Bearer <token>` header.
-
-| Method | URL | Description |
-|--------|-----|-------------|
-| POST | `/api/evaluate` | Upload & evaluate answer sheets |
-| GET | `/api/evaluate/status/:examId` | Get evaluation progress |
-
-#### Start Evaluation
-
-```
-POST http://localhost:5000/api/evaluate
-Authorization: Bearer <token>
-Content-Type: multipart/form-data
-```
-**Form Data:**
-- `examId`: UUID of the exam
-- `answerSheets`: Multiple PDF/image files (max 50, max 10MB each)
-
-> File naming convention: `RollNo_StudentName.pdf` (e.g., `CS2024001_Alice.pdf`)
-
-**Response:**
-```json
-{
-  "message": "Evaluation complete",
-  "examId": "uuid",
-  "total": 3,
-  "successful": 3,
-  "failed": 0,
-  "results": [
-    {
-      "student": { "rollNumber": "CS2024001", "name": "Alice" },
-      "marksAwarded": 78,
-      "maxMarks": 100,
-      "resultId": "uuid"
-    }
-  ],
-  "errors": []
-}
-```
-
-#### Check Progress
-
-```
-GET http://localhost:5000/api/evaluate/status/<examId>
-Authorization: Bearer <token>
-```
-
----
-
-### 📊 Results
-
-> All result routes require `Authorization: Bearer <token>` header.
-
-| Method | URL | Description |
-|--------|-----|-------------|
-| GET | `/api/results/:examId` | Get all results for exam |
-| GET | `/api/results/:examId/student/:studentId` | Get single student result |
-| GET | `/api/results/:examId/export/csv` | Download CSV |
-| GET | `/api/results/:examId/export/pdf` | Get PDF data |
-
-#### Get Results
-
-```
-GET http://localhost:5000/api/results/<examId>
-Authorization: Bearer <token>
-```
-**Response:**
-```json
-{
-  "results": [...],
-  "stats": {
-    "totalStudents": 30,
-    "average": 72.5,
-    "highest": 95,
-    "lowest": 45,
-    "maxMarks": 100
-  }
-}
-```
-
-#### Export CSV
-
-```
-GET http://localhost:5000/api/results/<examId>/export/csv
-Authorization: Bearer <token>
-```
-> Returns CSV file download with all student marks.
-
----
-
-## 🔑 Auth Flow (Postman)
-
-1. **Register** → `POST /api/auth/register` → get `token`
-2. **Copy token** from response
-3. For all other requests, add header:
-   ```
-   Authorization: Bearer <paste_token_here>
-   ```
-4. Token valid for **7 days**
-
----
-
-## 🗄️ Database (Supabase)
-
-### Tables
-
-| Table | Purpose |
-|-------|---------|
-| `users` | Faculty accounts |
-| `exams` | Exam configs + questions + rubric |
-| `students` | Student records per exam |
-| `evaluations` | Evaluation status tracking |
-| `results` | Per-student marks + feedback |
-
-### Setup
-
-1. Go to Supabase Dashboard → SQL Editor
-2. Run `supabase/migrations/001_create_tables.sql`
-3. (Optional) Run `supabase/seed/seed.sql` for demo data
-
----
-
-## 🛠️ Tech Stack
-
-- **Runtime:** Node.js
-- **Framework:** Express.js 5
-- **AI:** Google Gemini 2.0 Flash (Vision API)
-- **Database:** Supabase (PostgreSQL)
-- **Auth:** JWT + bcrypt
-- **File Upload:** Multer
-- **Export:** csv-writer
-
----
-
-## ❌ Error Codes
-
-| Code | Meaning |
-|------|---------|
-| 400 | Bad request / missing fields |
-| 401 | No token / invalid token / expired |
-| 403 | Insufficient permissions |
-| 404 | Route or resource not found |
-| 413 | File too large (>10MB) or too many files (>50) |
-| 415 | Unsupported file type |
-| 500 | Internal server error |
+## 📄 License
+MIT License. Created by the Evalify AI Team.

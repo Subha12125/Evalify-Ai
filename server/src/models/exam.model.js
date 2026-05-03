@@ -53,6 +53,21 @@ const ExamModel = {
   },
 
   /**
+   * Update exam fields.
+   */
+  async update(examId, fields) {
+    const { data, error } = await supabase
+      .from('exams')
+      .update({ ...fields, updated_at: new Date().toISOString() })
+      .eq('id', examId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
    * Update exam status.
    */
   async updateStatus(examId, status) {

@@ -7,7 +7,10 @@ const router = Router();
 
 router.use(authenticate);
 
-router.post('/', createExam);
+router.post('/', upload.fields([
+  { name: 'questionPaper', maxCount: 1 },
+  { name: 'rubric', maxCount: 1 }
+]), createExam);
 router.get('/', getExams);
 router.get('/:id', getExam);
 router.delete('/:id', deleteExam);

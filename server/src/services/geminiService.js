@@ -1,7 +1,7 @@
-const genAI = require('../config/claude');
+const genAI = require('../config/gemini');
 const logger = require('../utils/logger');
 
-const MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+const MODELS = ['gemini-2.0-flash', 'gemini-1.5-flash'];
 const MAX_RETRIES = 2;
 const RETRY_DELAY_MS = 40000; // 40 seconds (API suggests ~35s)
 

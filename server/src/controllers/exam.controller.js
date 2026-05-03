@@ -1,5 +1,5 @@
 const ExamModel = require('../models/exam.model');
-const ClaudeService = require('../services/claudeService');
+const GeminiService = require('../services/geminiService');
 const PdfService = require('../services/pdfService');
 const { buildQuestionExtractionPrompt } = require('../utils/promptBuilder');
 const { parseEvaluationResponse } = require('../utils/parser');
@@ -85,7 +85,7 @@ async function extractQuestions(req, res, next) {
 
     const images = await PdfService.filesToBase64([req.file.path]);
     const prompt = buildQuestionExtractionPrompt();
-    const rawResponse = await ClaudeService.extractQuestions(images, prompt);
+    const rawResponse = await GeminiService.extractQuestions(images, prompt);
     const parsed = parseEvaluationResponse(rawResponse);
 
     // Cleanup

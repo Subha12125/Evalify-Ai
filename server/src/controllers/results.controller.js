@@ -11,7 +11,17 @@ async function getResults(req, res, next) {
     const results = await ResultModel.findByExam(examId);
     const stats = await ResultModel.getExamStats(examId);
 
-    res.json({ results, stats });
+    const mappedResults = results.map(r => ({
+      id: r.id,
+      studentName: r.students?.name || 'Unknown',
+      rollNumber: r.students?.roll_number || 'N/A',
+      marksAwarded: r.total_marks_awarded,
+      maxMarks: r.total_max_marks,
+      feedback: r.overall_feedback,
+      createdAt: r.created_at
+    }));
+
+    res.json({ results: mappedResults, stats });
   } catch (err) {
     next(err);
   }

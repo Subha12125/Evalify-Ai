@@ -1,4 +1,4 @@
-const ClaudeService = require('./claudeService');
+const GeminiService = require('./geminiService');
 const PdfService = require('./pdfService');
 const EvaluationModel = require('../models/evaluation.model');
 const StudentModel = require('../models/student.model');
@@ -83,7 +83,7 @@ const EvaluationService = {
       });
 
       // Call Claude
-      const rawResponse = await ClaudeService.evaluate(prompt, images);
+      const rawResponse = await GeminiService.evaluate(prompt, images);
       const parsed = parseEvaluationResponse(rawResponse);
 
       if (!parsed.success) {

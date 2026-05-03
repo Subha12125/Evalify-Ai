@@ -20,12 +20,15 @@ async function startEvaluation(req, res, next) {
 
     logger.info(`Starting evaluation for exam ${examId} with ${req.files.length} answer sheets`);
 
-    // Process in background - send immediate response
-    const batchResult = await EvaluationService.processBatch(examId, req.files);
-
+    // Process in background - do not await
+    EvaluationService.processBatch(examId, req.files)
+      .then(result => logger.info(`Batch evaluation complete for exam ${examId}`))
+      .catch(err => logger.error(`Batch evaluation failed for exam ${examId}: ${err.message}`));
+    
     res.json({
-      message: 'Evaluation complete',
-      ...batchResult,
+      message: 'Evaluation started',
+      examId,
+      status: 'processing'
     });
   } catch (err) {
     next(err);

@@ -46,7 +46,7 @@ const Results = () => {
 
   const selectedExam = exams.find(e => e.id === selectedExamId);
   const avgScore = results.length > 0 
-    ? (results.reduce((sum, r) => sum + (r.total_marks_awarded || 0), 0) / results.length).toFixed(1)
+    ? (results.reduce((sum, r) => sum + (r.marksAwarded || 0), 0) / results.length).toFixed(1)
     : '—';
   const maxMarks = selectedExam?.total_marks || 100;
 
@@ -175,21 +175,21 @@ const Results = () => {
                     </thead>
                     <tbody className="divide-y divide-outline-variant/10">
                       {results.map((result, idx) => {
-                        const pct = maxMarks > 0 ? Math.round((result.total_marks_awarded / maxMarks) * 100) : 0;
+                        const pct = maxMarks > 0 ? Math.round((result.marksAwarded / maxMarks) * 100) : 0;
                         return (
                           <tr key={result.id || idx} className="hover:bg-surface-container-low/50 transition-colors">
                             <td className="px-8 py-5">
                               <div className="flex items-center gap-3">
                                 <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
-                                  {(result.students?.name || 'S')[0]}
+                                  {(result.studentName || 'S')[0]}
                                 </div>
-                                <span className="font-semibold text-sm text-on-surface">{result.students?.name || 'Student'}</span>
+                                <span className="font-semibold text-sm text-on-surface">{result.studentName || 'Student'}</span>
                               </div>
                             </td>
-                            <td className="px-8 py-5 text-sm text-on-surface-variant font-medium">{result.students?.roll_number || '—'}</td>
+                            <td className="px-8 py-5 text-sm text-on-surface-variant font-medium">{result.rollNumber || '—'}</td>
                             <td className="px-8 py-5">
-                              <span className="text-lg font-black text-primary">{result.total_marks_awarded}</span>
-                              <span className="text-sm text-outline">/{result.total_max_marks || maxMarks}</span>
+                              <span className="text-lg font-black text-primary">{result.marksAwarded}</span>
+                              <span className="text-sm text-outline">/{result.maxMarks || maxMarks}</span>
                             </td>
                             <td className="px-8 py-5">
                               <div className="flex items-center gap-2">
@@ -202,7 +202,7 @@ const Results = () => {
                                 <span className="text-xs font-bold text-on-surface">{pct}%</span>
                               </div>
                             </td>
-                            <td className="px-8 py-5 text-xs text-on-surface-variant max-w-[200px] truncate">{result.overall_feedback || '—'}</td>
+                            <td className="px-8 py-5 text-xs text-on-surface-variant max-w-[200px] truncate">{result.feedback || '—'}</td>
                           </tr>
                         );
                       })}

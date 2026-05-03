@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
 import { useExam } from '../hooks/useExam';
@@ -11,7 +11,8 @@ const ExamDetail = () => {
   const navigate = useNavigate();
   const { addToast } = useToast();
   const { currentExam, loading: examLoading, fetchExamById } = useExam();
-  const { evaluations, fetchResults } = useEvaluation();
+  const { evaluations, fetchResults, startEvaluation } = useEvaluation();
+  const fileInputRef = useRef(null);
   const [results, setResults] = useState([]);
   const [stats, setStats] = useState(null);
   const [resultsLoading, setResultsLoading] = useState(true);
@@ -51,6 +52,35 @@ const ExamDetail = () => {
       addToast('Export downloaded!', 'success');
     } catch (err) {
       addToast('Export failed', 'error');
+    }
+  };
+  const [uploading, setUploading] = useState(false);
+
+  const handleAddStudentPDF = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = async (e) => {
+    const selectedFiles = Array.from(e.target.files);
+    if (selectedFiles.length === 0) return;
+
+    // Reset input so same file can be re-selected
+    e.target.value = '';
+
+    const filesToUpload = selectedFiles.map(file => ({
+      originalFile: file
+    }));
+
+    setUploading(true);
+    try {
+      addToast(`Uploading ${selectedFiles.length} answer sheet(s)...`, 'info');
+      await startEvaluation(id, filesToUpload);
+      addToast('Evaluation started for new students!', 'success');
+      navigate(`/evaluation-progress?examId=${id}`);
+    } catch (err) {
+      addToast(err.message || 'Failed to start evaluation', 'error');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -96,6 +126,24 @@ const ExamDetail = () => {
           </div>
         </div>
         <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            className="hidden" 
+            accept="image/*,.pdf" 
+            multiple 
+            onChange={handleFileSelect}
+          />
+          <button 
+            onClick={handleAddStudentPDF} 
+            disabled={uploading}
+            className={`flex-1 sm:flex-none px-4 sm:px-6 py-3 rounded-lg font-bold shadow-sm flex items-center justify-center gap-2 transition-all border text-xs ${
+              uploading ? 'bg-secondary/5 text-secondary/50 border-secondary/10 cursor-not-allowed' : 'bg-secondary/10 text-secondary border-secondary/20 hover:bg-secondary/20'
+            }`}
+          >
+            <span className={`material-symbols-outlined text-sm ${uploading ? 'animate-spin' : ''}`}>{uploading ? 'progress_activity' : 'upload_file'}</span>
+            {uploading ? 'Uploading...' : 'Add Students'}
+          </button>
           <button onClick={() => handleExport('csv')} className="flex-1 sm:flex-none bg-surface-container-lowest text-on-surface-variant px-4 sm:px-6 py-3 rounded-lg font-bold shadow-sm flex items-center justify-center gap-2 hover:bg-surface-container-high transition-all border border-outline-variant/10 text-xs">
             <span className="material-symbols-outlined text-sm">download</span>
             CSV

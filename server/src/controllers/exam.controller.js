@@ -9,25 +9,61 @@ const logger = require('../utils/logger');
  * POST /api/exams
  */
 async function createExam(req, res, next) {
+  const filesToCleanup = [];
   try {
-    const { title, subject, totalMarks, questions, rubric } = req.body;
+    const { title, subject, totalMarks } = req.body;
 
     if (!title || !subject || !totalMarks) {
       return res.status(400).json({ error: 'Title, subject, and totalMarks are required' });
     }
 
+    // Extract question paper text (pdf-parse is instant, no API call)
+    let questionPaperText = '';
+    if (req.files?.questionPaper?.[0]) {
+      const qpFile = req.files.questionPaper[0];
+      filesToCleanup.push(qpFile.path);
+      try {
+        questionPaperText = await PdfService.extractText(qpFile.path);
+        logger.info(`Extracted question paper (${questionPaperText.length} chars)`);
+      } catch (err) {
+        logger.error(`Question paper extraction failed: ${err.message}`);
+      }
+    }
+
+    // Extract rubric text (pdf-parse is instant, no API call)
+    let rubricText = '';
+    if (req.files?.rubric?.[0]) {
+      const rubricFile = req.files.rubric[0];
+      filesToCleanup.push(rubricFile.path);
+      try {
+        rubricText = await PdfService.extractText(rubricFile.path);
+        logger.info(`Extracted rubric (${rubricText.length} chars)`);
+      } catch (err) {
+        logger.error(`Rubric extraction failed: ${err.message}`);
+      }
+    }
+
+    // Cleanup uploaded files
+    PdfService.cleanup(filesToCleanup);
+
+    // Store question paper text inside questions jsonb
+    const questions = questionPaperText
+      ? [{ type: 'extracted_text', text: questionPaperText }]
+      : [];
+
     const exam = await ExamModel.create({
       title,
       subject,
       totalMarks: parseInt(totalMarks, 10),
-      questions: questions || [],
-      rubric: rubric || '',
+      questions,
+      rubric: rubricText,
       createdBy: req.user.id,
     });
 
-    logger.info(`Exam created: ${title} by ${req.user.email}`);
+    logger.info(`Exam created: ${title} (questions: ${questionPaperText.length} chars, rubric: ${rubricText.length} chars)`);
     res.status(201).json({ exam });
   } catch (err) {
+    PdfService.cleanup(filesToCleanup);
     next(err);
   }
 }

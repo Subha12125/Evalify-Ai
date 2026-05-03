@@ -11,8 +11,20 @@ export const examService = {
     return response.data;
   },
 
-  createExam: async (examData) => {
-    const response = await api.post('/exams', examData);
+  createExam: async ({ title, subject, totalMarks, questionPaperFile, rubricFile }) => {
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('subject', subject);
+    formData.append('totalMarks', totalMarks);
+    if (questionPaperFile) {
+      formData.append('questionPaper', questionPaperFile);
+    }
+    if (rubricFile) {
+      formData.append('rubric', rubricFile);
+    }
+    const response = await api.post('/exams', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
     return response.data;
   },
 

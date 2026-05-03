@@ -39,11 +39,16 @@ const CreateExam = () => {
     try {
       addToast('Creating exam record...');
       
-      // Step 1: Create the exam to get a real UUID
+      // Step 1: Create the exam with question paper + rubric
+      const questionPaper = files.find(f => f.type === 'question_paper');
+      const rubricFile = files.find(f => f.type === 'rubric');
+
       const { exam } = await examService.createExam({
         title: examTitle.trim(),
         subject: examSubject.trim(),
         totalMarks: parseInt(totalMarks, 10),
+        questionPaperFile: questionPaper?.originalFile || null,
+        rubricFile: rubricFile?.originalFile || null,
       });
 
       addToast('Uploading and initializing AI engines...');

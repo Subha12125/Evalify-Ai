@@ -1,6 +1,27 @@
 import React from 'react';
 
 const ScoreCard = ({ label, value, subValue, icon, color = 'primary', noBg = false }) => {
+  const statusValues = ['completed', 'failed', 'evaluating', 'processing', 'pending', 'created'];
+  const isStatusValue = statusValues.includes(value?.toLowerCase());
+
+  const statusStyles = {
+    completed: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    failed: 'bg-red-50 text-red-700 border border-red-200',
+    evaluating: 'bg-amber-50 text-amber-700 border border-amber-200',
+    processing: 'bg-amber-50 text-amber-700 border border-amber-200',
+    pending: 'bg-blue-50 text-blue-700 border border-blue-200',
+    created: 'bg-indigo-50 text-indigo-700 border border-indigo-200',
+  };
+
+  const statusDots = {
+    completed: 'bg-emerald-500',
+    failed: 'bg-red-500',
+    evaluating: 'bg-amber-500 animate-pulse',
+    processing: 'bg-amber-500 animate-pulse',
+    pending: 'bg-blue-500',
+    created: 'bg-indigo-500',
+  };
+
   const colors = {
     primary: 'bg-primary/10 text-primary',
     secondary: 'bg-secondary/10 text-secondary',
@@ -35,7 +56,14 @@ const ScoreCard = ({ label, value, subValue, icon, color = 'primary', noBg = fal
       
       {/* Bottom Section: Text & Values */}
       <div className="relative z-10 flex flex-col gap-1">
-        <h3 className="text-3xl font-black font-headline text-on-surface leading-none">{value}</h3>
+        {isStatusValue ? (
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider w-fit ${statusStyles[value?.toLowerCase()] || 'bg-gray-100 text-gray-700'}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${statusDots[value?.toLowerCase()] || 'bg-gray-500'}`} />
+            {value}
+          </span>
+        ) : (
+          <h3 className="text-3xl font-black font-headline text-on-surface leading-none">{value}</h3>
+        )}
         <p className="text-[10px] font-bold uppercase tracking-widest text-outline leading-tight mt-1 break-words">
           {label}
         </p>

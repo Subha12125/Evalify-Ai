@@ -250,19 +250,19 @@ const ExamDetail = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
-                            {(result.students?.name || 'S')[0]}
+                            {(result.studentName || 'S')[0]}
                           </div>
                           <div>
-                            <p className="font-semibold text-sm">{result.students?.name || 'Student'}</p>
-                            <p className="text-[10px] text-outline">{result.students?.roll_number || ''}</p>
+                            <p className="font-semibold text-sm">{result.studentName || 'Student'}</p>
+                            <p className="text-[10px] text-outline">{result.rollNumber || ''}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-lg font-black text-primary">{result.total_marks_awarded}</span>
-                        <span className="text-sm text-outline">/{result.total_max_marks || exam.total_marks}</span>
+                        <span className="text-lg font-black text-primary">{result.marksAwarded}</span>
+                        <span className="text-sm text-outline">/{result.maxMarks || exam.total_marks}</span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-on-surface-variant max-w-xs truncate">{result.overall_feedback || '—'}</td>
+                      <td className="px-6 py-4 text-sm text-on-surface-variant max-w-xs truncate">{result.feedback || '—'}</td>
                     </tr>
                   ))}
                 </tbody>

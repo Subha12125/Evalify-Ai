@@ -31,9 +31,9 @@ export const useAuth = () => {
       login(data.user, data.token);
       return data;
     } catch (err) {
-      const message = err.response?.data?.message || 'Signup failed';
+      const message = err.response?.data?.message || err.response?.data?.error || 'Signup failed';
       setError(message);
-      throw new Error(message);
+      throw err;
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,6 @@
 const EvaluationService = require('../services/evaluationService');
 const EvaluationModel = require('../models/evaluation.model');
+const QuotaModel = require('../models/quota.model');
 const logger = require('../utils/logger');
 
 /**
@@ -16,6 +17,16 @@ async function startEvaluation(req, res, next) {
 
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'At least one answer sheet file is required' });
+    }
+
+    // Check daily quota
+    const quota = await QuotaModel.checkQuota(req.user.id);
+    if (!quota.allowed) {
+      return res.status(403).json({
+        error: 'Daily free limit reached',
+        message: `You have used all ${quota.limit} free evaluations today. Upgrade your plan for more.`,
+        quota,
+      });
     }
 
     logger.info(`Starting evaluation for exam ${examId} with ${req.files.length} answer sheets`);

@@ -39,7 +39,8 @@ const Signup = () => {
       addToast('Registration successful', 'success');
       navigate('/dashboard');
     } catch (err) {
-      addToast(err.message || 'Signup failed', 'error');
+      const msg = err.response?.data?.message || err.response?.data?.error || err.message || 'Signup failed';
+      addToast(msg, 'error');
     } finally {
       setLoading(false);
     }

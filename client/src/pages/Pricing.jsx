@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
 import { useToast } from '../context/ToastContext';
+import { useQuota } from '../hooks/useQuota';
 
 const Pricing = () => {
   const [annual, setAnnual] = useState(false);
   const { addToast } = useToast();
+  const { plan, subscribed, applyPromo } = useQuota();
+
+  // Promo code state
+  const [promoCode, setPromoCode] = useState('');
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoResult, setPromoResult] = useState(null); // { success, message }
 
   const handlePlanSelect = (planName) => {
     addToast(`Redirecting to checkout for ${planName} plan...`, 'info');
@@ -11,6 +18,33 @@ const Pricing = () => {
 
   const handleDemo = () => {
     addToast('Opening demo scheduling calendar...', 'info');
+  };
+
+  const handleApplyPromo = async () => {
+    if (!promoCode.trim()) {
+      addToast('Enter a promo code', 'error');
+      return;
+    }
+
+    setPromoLoading(true);
+    setPromoResult(null);
+    try {
+      const result = await applyPromo(promoCode.trim());
+      if (result.success) {
+        setPromoResult({ success: true, message: result.message });
+        addToast(result.message, 'success');
+        setPromoCode('');
+      } else {
+        setPromoResult({ success: false, message: result.error || 'Failed' });
+        addToast(result.error || 'Invalid promo code', 'error');
+      }
+    } catch (err) {
+      const msg = err.response?.data?.error || 'Failed to apply code';
+      setPromoResult({ success: false, message: msg });
+      addToast(msg, 'error');
+    } finally {
+      setPromoLoading(false);
+    }
   };
 
   const plans = [
@@ -50,6 +84,12 @@ const Pricing = () => {
         <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold tracking-widest uppercase rounded-full">Pricing</span>
         <h1 className="text-3xl sm:text-4xl font-black font-headline mt-4 mb-3">Simple, Transparent Pricing</h1>
         <p className="text-on-surface-variant font-medium text-sm max-w-md mx-auto">All prices in Indian Rupees (₹). GST @18% applicable on all plans.</p>
+
+        {/* Free tier info */}
+        <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-full">
+          <span className="material-symbols-outlined text-emerald-600 text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>redeem</span>
+          <span className="text-xs font-bold text-emerald-700">Every user gets 3 free evaluations daily — no card needed!</span>
+        </div>
 
         {/* Toggle */}
         <div className="flex items-center justify-center gap-4 mt-8">
@@ -110,11 +150,79 @@ const Pricing = () => {
         ))}
       </div>
 
+      {/* ====== PROMO CODE SECTION ====== */}
+      <div className="max-w-lg mx-auto mt-16">
+        <div className="bg-white rounded-2xl p-6 sm:p-8 atmospheric-shadow border border-outline-variant/10 relative overflow-hidden">
+          {/* Decorative glow */}
+          <div className="absolute -right-10 -top-10 w-40 h-40 bg-secondary/5 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>confirmation_number</span>
+              <h3 className="font-headline font-bold text-base">Have a Promo Code?</h3>
+            </div>
+            <p className="text-xs text-on-surface-variant mb-5">Enter your promo code to unlock a premium plan instantly.</p>
+
+            <div className="flex gap-3">
+              <input
+                type="text"
+                value={promoCode}
+                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                onKeyDown={(e) => e.key === 'Enter' && handleApplyPromo()}
+                placeholder="e.g. OPENFREE"
+                className="flex-1 px-4 py-3 bg-surface-container-high/50 rounded-xl text-sm font-bold text-on-surface placeholder:text-outline border-none focus:ring-2 focus:ring-secondary/40 transition-all tracking-widest uppercase"
+                disabled={promoLoading}
+                maxLength={20}
+              />
+              <button
+                onClick={handleApplyPromo}
+                disabled={promoLoading || !promoCode.trim()}
+                className={`px-6 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 flex-shrink-0 ${
+                  promoLoading || !promoCode.trim()
+                    ? 'bg-surface-container-high text-outline pointer-events-none'
+                    : 'bg-secondary text-white hover:opacity-90 active:scale-95 shadow-lg shadow-secondary/20'
+                }`}
+              >
+                {promoLoading ? (
+                  <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+                ) : (
+                  <span className="material-symbols-outlined text-sm">redeem</span>
+                )}
+                Apply
+              </button>
+            </div>
+
+            {/* Result message */}
+            {promoResult && (
+              <div className={`mt-4 flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-bold ${
+                promoResult.success
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                  : 'bg-red-50 text-red-700 border border-red-200'
+              }`}>
+                <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  {promoResult.success ? 'check_circle' : 'error'}
+                </span>
+                {promoResult.message}
+              </div>
+            )}
+
+            {/* Current plan indicator */}
+            {subscribed && (
+              <div className="mt-4 flex items-center gap-2 px-4 py-3 bg-primary/5 rounded-xl border border-primary/10">
+                <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
+                <span className="text-xs font-bold text-primary uppercase tracking-wider">Active Plan: {plan}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* FAQ */}
       <div className="max-w-2xl mx-auto mt-20">
         <h2 className="text-2xl font-bold font-headline text-center mb-10">Frequently Asked Questions</h2>
         <div className="space-y-4">
           {[
+            { q: 'How many free evaluations do I get?', a: 'Every user gets 3 free evaluations per day. No credit card or signup fees required.' },
             { q: 'Is GST included in the pricing?', a: 'No, GST @18% is applicable on all plans and will be added at checkout.' },
             { q: 'Can I switch plans anytime?', a: 'Yes. Upgrade or downgrade anytime. Pro-rata adjustments are applied automatically.' },
             { q: 'Do you offer a free trial?', a: 'Yes, the Starter plan comes with a 14-day free trial. No credit card required.' },

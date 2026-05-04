@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useExam } from '../hooks/useExam';
+import { useQuota } from '../hooks/useQuota';
 import ScoreCard from '../components/evaluation/ScoreCard';
 import Spinner from '../components/ui/Spinner';
 
@@ -9,10 +10,12 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { exams, loading, fetchExams } = useExam();
+  const { remaining, limit, plan, fetchQuota } = useQuota();
 
   useEffect(() => {
     fetchExams();
-  }, [fetchExams]);
+    fetchQuota();
+  }, [fetchExams, fetchQuota]);
 
   // Compute real stats from exams data
   const totalExams = exams.length;
@@ -48,7 +51,7 @@ const Dashboard = () => {
         <ScoreCard label="Total Exams" value={String(totalExams)} icon="menu_book" color="primary" subValue="All Time" />
         <ScoreCard label="Completed" value={String(completedExams)} icon="task_alt" color="secondary" subValue={totalExams > 0 ? `${Math.round((completedExams / totalExams) * 100)}%` : '—'} />
         <ScoreCard label="Pending" value={String(pendingExams)} icon="pending_actions" color="error" subValue={pendingExams > 0 ? 'In Progress' : 'None'} />
-        <ScoreCard label="Failed" value={String(failedExams)} icon="error" color="error" subValue={failedExams > 0 ? 'Needs Attention' : 'All Good'} />
+        <ScoreCard label="Daily Quota" value={`${remaining}/${limit}`} icon="toll" color={remaining > 0 ? 'success' : 'error'} subValue={plan === 'free' ? 'Free Tier' : plan} />
       </div>
 
       {/* Chart Area + Quick Actions */}

@@ -19,11 +19,13 @@ export const useExam = () => {
 
   const fetchExams = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await examService.getExams();
       setExams(data.exams || []);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch exams');
+      setExams([]);
     } finally {
       setLoading(false);
     }

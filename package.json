@@ -1,0 +1,11 @@
+{
+  "name": "evalify-ai",
+  "version": "1.0.0",
+  "scripts": {
+    "install:all": "npm --prefix client install && npm --prefix server install",
+    "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

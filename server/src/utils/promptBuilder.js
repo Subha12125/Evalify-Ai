@@ -3,24 +3,34 @@
  */
 
 function buildEvaluationPrompt(examData) {
-  const { subject, totalMarks, questions, rubric } = examData;
+  const { subject, totalMarks, rubric } = examData;
+  const questions = examData.questions || [];
+
+  let questionsSection;
+  // Check if questions contains extracted full text from question paper PDF
+  const extractedText = questions.find(q => q.type === 'extracted_text');
+  if (extractedText && extractedText.text) {
+    questionsSection = `## Question Paper (Extracted Text)\n${extractedText.text.trim()}`;
+  } else if (questions.length > 0) {
+    questionsSection = `## Questions & Marking Scheme\n${questions.map((q, i) => `Q${i + 1}. ${q.text} [${q.marks} marks]`).join('\n')}`;
+  } else {
+    questionsSection = `## Questions\nNo specific questions provided. Evaluate all answers found in the answer sheet based on the subject and total marks.`;
+  }
 
   return `You are an expert exam evaluator. Evaluate the student's answer sheet image(s) based on the following exam details.
 
 ## Exam Information
 - Subject: ${subject}
 - Total Marks: ${totalMarks}
-- Number of Questions: ${questions.length}
 
-## Questions & Marking Scheme
-${questions.map((q, i) => `Q${i + 1}. ${q.text} [${q.marks} marks]`).join('\n')}
+${questionsSection}
 
 ## Rubric / Evaluation Criteria
 ${rubric || 'Evaluate based on accuracy, completeness, and clarity of explanation.'}
 
 ## Instructions
 1. Read each answer from the student's handwritten/typed answer sheet.
-2. Compare each answer against the expected answer and rubric.
+2. Compare each answer against the question paper text and rubric above.
 3. Assign marks for each question.
 4. Provide specific, constructive feedback for each answer.
 

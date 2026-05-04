@@ -1,4 +1,4 @@
-const ClaudeService = require('./claudeService');
+const GeminiService = require('./geminiService');
 const PdfService = require('./pdfService');
 const EvaluationModel = require('../models/evaluation.model');
 const StudentModel = require('../models/student.model');
@@ -18,17 +18,24 @@ const EvaluationService = {
     const exam = await ExamModel.findById(examId);
     if (!exam) throw new Error('Exam not found');
 
+    const previousStatus = exam.status;
     await ExamModel.updateStatus(examId, 'evaluating');
 
     const results = [];
     const errors = [];
 
-    for (const file of answerFiles) {
+    for (let i = 0; i < answerFiles.length; i++) {
+      const file = answerFiles[i];
       try {
+        // Delay between files to avoid Gemini API rate limits
+        if (i > 0) {
+          logger.info(`Waiting 5s before next evaluation to avoid rate limits...`);
+          await new Promise(r => setTimeout(r, 5000));
+        }
         const result = await this.evaluateSingle(exam, file);
         results.push(result);
       } catch (err) {
-        logger.error(`Failed to evaluate ${file.originalname}`, { error: err.message });
+        logger.error(`Failed to evaluate ${file.originalname}`, { error: err.message, stack: err.stack });
         errors.push({ file: file.originalname, error: err.message });
       }
     }
@@ -36,8 +43,17 @@ const EvaluationService = {
     // Clean up uploaded files
     PdfService.cleanup(answerFiles.map((f) => f.path));
 
-    // Update exam status
-    const finalStatus = errors.length === answerFiles.length ? 'failed' : 'completed';
+    // Determine final status considering existing evaluations
+    let finalStatus;
+    if (results.length > 0) {
+      // At least one new file succeeded
+      finalStatus = 'completed';
+    } else if (previousStatus === 'completed') {
+      // All new files failed but exam had previous results
+      finalStatus = 'completed';
+    } else {
+      finalStatus = 'failed';
+    }
     await ExamModel.updateStatus(examId, finalStatus);
 
     return {
@@ -83,7 +99,7 @@ const EvaluationService = {
       });
 
       // Call Claude
-      const rawResponse = await ClaudeService.evaluate(prompt, images);
+      const rawResponse = await GeminiService.evaluate(prompt, images);
       const parsed = parseEvaluationResponse(rawResponse);
 
       if (!parsed.success) {

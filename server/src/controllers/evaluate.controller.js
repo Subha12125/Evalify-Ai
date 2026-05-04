@@ -1,5 +1,6 @@
 const EvaluationService = require('../services/evaluationService');
 const EvaluationModel = require('../models/evaluation.model');
+const QuotaModel = require('../models/quota.model');
 const logger = require('../utils/logger');
 
 /**
@@ -18,14 +19,27 @@ async function startEvaluation(req, res, next) {
       return res.status(400).json({ error: 'At least one answer sheet file is required' });
     }
 
+    // Check daily quota
+    const quota = await QuotaModel.checkQuota(req.user.id);
+    if (!quota.allowed) {
+      return res.status(403).json({
+        error: 'Daily free limit reached',
+        message: `You have used all ${quota.limit} free evaluations today. Upgrade your plan for more.`,
+        quota,
+      });
+    }
+
     logger.info(`Starting evaluation for exam ${examId} with ${req.files.length} answer sheets`);
 
-    // Process in background - send immediate response
-    const batchResult = await EvaluationService.processBatch(examId, req.files);
-
+    // Process in background - do not await
+    EvaluationService.processBatch(examId, req.files)
+      .then(result => logger.info(`Batch evaluation complete for exam ${examId}`))
+      .catch(err => logger.error(`Batch evaluation failed for exam ${examId}: ${err.message}`));
+    
     res.json({
-      message: 'Evaluation complete',
-      ...batchResult,
+      message: 'Evaluation started',
+      examId,
+      status: 'processing'
     });
   } catch (err) {
     next(err);

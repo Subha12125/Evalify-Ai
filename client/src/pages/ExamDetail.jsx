@@ -1,122 +1,295 @@
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useToast } from '../context/ToastContext';
+import { useExam } from '../hooks/useExam';
+import { useEvaluation } from '../hooks/useEvaluation';
+import { resultsService } from '../services/results.service';
+import Spinner from '../components/ui/Spinner';
 
 const ExamDetail = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { addToast } = useToast();
+  const { currentExam, loading: examLoading, fetchExamById } = useExam();
+  const { evaluations, fetchResults, startEvaluation } = useEvaluation();
+  const fileInputRef = useRef(null);
+  const [results, setResults] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [resultsLoading, setResultsLoading] = useState(true);
+
+  useEffect(() => {
+    if (id) {
+      fetchExamById(id);
+      fetchResults(id);
+      
+      // Fetch results
+      resultsService.getExamResults(id)
+        .then(data => {
+          setResults(data.results || []);
+          setStats(data.stats || null);
+        })
+        .catch(() => {})
+        .finally(() => setResultsLoading(false));
+    }
+  }, [id, fetchExamById, fetchResults]);
+
+  const exam = currentExam;
+
+  const handleExport = async (format) => {
+    try {
+      addToast(`Exporting ${format.toUpperCase()}...`, 'info');
+      const data = await resultsService.exportResults(id, format);
+      
+      if (format === 'csv') {
+        const blob = new Blob([data], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `results-${id}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+      addToast('Export downloaded!', 'success');
+    } catch (err) {
+      addToast('Export failed', 'error');
+    }
+  };
+  const [uploading, setUploading] = useState(false);
+
+  const handleAddStudentPDF = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = async (e) => {
+    const selectedFiles = Array.from(e.target.files);
+    if (selectedFiles.length === 0) return;
+
+    // Reset input so same file can be re-selected
+    e.target.value = '';
+
+    const filesToUpload = selectedFiles.map(file => ({
+      originalFile: file
+    }));
+
+    setUploading(true);
+    try {
+      addToast(`Uploading ${selectedFiles.length} answer sheet(s)...`, 'info');
+      await startEvaluation(id, filesToUpload);
+      addToast('Evaluation started for new students!', 'success');
+      navigate(`/evaluation-progress?examId=${id}`);
+    } catch (err) {
+      addToast(err.message || 'Failed to start evaluation', 'error');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  if (examLoading || !exam) {
+    return (
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  const statusColors = {
+    completed: 'text-emerald-700 bg-emerald-100',
+    evaluating: 'text-amber-700 bg-amber-100',
+    processing: 'text-amber-700 bg-amber-100',
+    pending: 'text-blue-700 bg-blue-100',
+    failed: 'text-red-700 bg-red-100',
+  };
+
   return (
     <div className="relative min-h-full">
       {/* Header Section */}
-      <section className="mb-10 sm:mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-        <div>
-          <nav className="flex mb-4 items-center text-[10px] sm:text-xs text-outline uppercase tracking-widest font-bold gap-2">
-            <span>Exams</span>
-            <span className="material-symbols-outlined text-[10px]">chevron_right</span>
-            <span className="truncate max-w-[100px] sm:max-w-none">Fall 2023 Midterm</span>
-            <span className="material-symbols-outlined text-[10px]">chevron_right</span>
-            <span className="text-primary">Detail</span>
-          </nav>
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-primary-container flex items-center justify-center text-on-primary-container shadow-lg shadow-primary/20">
-              <span className="material-symbols-outlined scale-110 sm:scale-150" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
+      <section className="mb-8 sm:mb-10 md:mb-12">
+        {/* Breadcrumbs */}
+        <nav className="flex flex-wrap mb-3 sm:mb-4 items-center text-[10px] sm:text-xs text-outline uppercase tracking-widest font-bold gap-1.5 sm:gap-2">
+          <span className="cursor-pointer hover:text-primary" onClick={() => navigate('/exams')}>Exams</span>
+          <span className="material-symbols-outlined text-[10px]">chevron_right</span>
+          <span className="text-primary truncate max-w-[150px] sm:max-w-[200px]">{exam.title}</span>
+        </nav>
+
+        {/* Title Row */}
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 sm:gap-6">
+          <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+            <div className="w-11 h-11 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-primary-container flex items-center justify-center text-on-primary-container shadow-lg shadow-primary/20 flex-shrink-0">
+              <span className="material-symbols-outlined text-xl sm:scale-150" style={{ fontVariationSettings: "'FILL' 1" }}>menu_book</span>
             </div>
-            <div>
-              <h1 className="text-2xl sm:text-4xl font-extrabold text-on-surface tracking-tight leading-tight mb-1 font-headline">Elena Rodriguez</h1>
-              <p className="text-[10px] sm:text-sm text-on-surface-variant font-medium">ID: #UG-88291 • CS 101</p>
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl md:text-4xl font-extrabold text-on-surface tracking-tight leading-tight mb-1 font-headline truncate">{exam.title}</h1>
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <span className="text-[10px] sm:text-sm text-on-surface-variant font-medium">
+                  {exam.subject} • {exam.total_marks} marks
+                </span>
+                <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${statusColors[exam.status] || 'text-gray-600 bg-gray-100'}`}>
+                  {exam.status}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
-          <button className="flex-1 sm:flex-none bg-surface-container-lowest text-on-surface-variant px-4 sm:px-6 py-3 rounded-lg font-bold shadow-sm flex items-center justify-center gap-2 hover:bg-surface-container-high transition-all border border-outline-variant/10 text-xs">
-            <span className="material-symbols-outlined text-sm">mail</span>
-            Email
-          </button>
-          <button className="flex-1 sm:flex-none bg-primary text-on-primary px-4 sm:px-6 py-3 rounded-lg font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2 hover:opacity-90 transition-all text-xs">
-            <span className="material-symbols-outlined text-sm">download</span>
-            PDF
-          </button>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2 w-full sm:w-auto">
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              className="hidden" 
+              accept="image/*,.pdf" 
+              multiple 
+              onChange={handleFileSelect}
+            />
+            <button 
+              onClick={handleAddStudentPDF} 
+              disabled={uploading}
+              className={`flex-1 sm:flex-none px-3 sm:px-6 py-2.5 sm:py-3 rounded-lg font-bold shadow-sm flex items-center justify-center gap-1.5 sm:gap-2 transition-all border text-xs ${
+                uploading ? 'bg-secondary/5 text-secondary/50 border-secondary/10 cursor-not-allowed' : 'bg-secondary/10 text-secondary border-secondary/20 hover:bg-secondary/20'
+              }`}
+            >
+              <span className={`material-symbols-outlined text-sm ${uploading ? 'animate-spin' : ''}`}>{uploading ? 'progress_activity' : 'upload_file'}</span>
+              <span className="hidden sm:inline">{uploading ? 'Uploading...' : 'Add Students'}</span>
+              <span className="sm:hidden">{uploading ? '...' : 'Add'}</span>
+            </button>
+            <button onClick={() => handleExport('csv')} className="flex-1 sm:flex-none bg-surface-container-lowest text-on-surface-variant px-3 sm:px-6 py-2.5 sm:py-3 rounded-lg font-bold shadow-sm flex items-center justify-center gap-1.5 sm:gap-2 hover:bg-surface-container-high transition-all border border-outline-variant/10 text-xs">
+              <span className="material-symbols-outlined text-sm">download</span>
+              CSV
+            </button>
+            <button 
+              onClick={() => {
+                if (exam.status !== 'completed') {
+                  navigate('/create-exam');
+                } else {
+                  handleExport('pdf');
+                }
+              }}
+              className="flex-1 sm:flex-none bg-primary text-on-primary px-3 sm:px-6 py-2.5 sm:py-3 rounded-lg font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-1.5 sm:gap-2 hover:opacity-90 transition-all text-xs"
+            >
+              <span className="material-symbols-outlined text-sm">{exam.status === 'completed' ? 'download' : 'replay'}</span>
+              {exam.status === 'completed' ? 'PDF' : 'Retry'}
+            </button>
+          </div>
         </div>
       </section>
 
-      {/* Bento Grid Analysis */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-12">
-        {/* Overall Score Card */}
-        <div className="md:col-span-12 lg:col-span-4 bg-surface-container-lowest rounded-xl p-6 sm:p-8 flex flex-col justify-between atmospheric-shadow border border-outline-variant/10">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 mb-8 sm:mb-12">
+        <div className="lg:col-span-4 bg-surface-container-lowest rounded-xl p-5 sm:p-6 md:p-8 flex flex-col justify-between atmospheric-shadow border border-outline-variant/10">
           <div>
-            <h3 className="text-[10px] font-bold uppercase tracking-widest text-outline mb-6">Aggregate Performance</h3>
-            <div className="flex items-baseline gap-2">
-              <span className="text-5xl sm:text-7xl font-black text-primary tracking-tighter font-headline">92</span>
-              <span className="text-xl sm:text-2xl font-bold text-outline-variant">/ 100</span>
-            </div>
-          </div>
-          <div className="mt-8">
-            <div className="flex justify-between text-xs sm:text-sm font-semibold mb-2">
-              <span className="text-on-surface">Percentile</span>
-              <span className="text-primary font-bold">Top 5%</span>
-            </div>
-            <div className="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
-              <div className="h-full bg-primary rounded-full" style={{ width: '92%' }}></div>
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-outline mb-4 sm:mb-6">Exam Information</h3>
+            <div className="space-y-3 sm:space-y-4">
+              <div className="flex justify-between">
+                <span className="text-xs sm:text-sm text-on-surface-variant">Subject</span>
+                <span className="text-xs sm:text-sm font-bold text-on-surface">{exam.subject}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-xs sm:text-sm text-on-surface-variant">Total Marks</span>
+                <span className="text-xs sm:text-sm font-bold text-on-surface">{exam.total_marks}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-xs sm:text-sm text-on-surface-variant">Status</span>
+                <span className={`text-[10px] sm:text-xs font-bold uppercase px-2 py-0.5 rounded ${statusColors[exam.status] || 'text-gray-600 bg-gray-100'}`}>{exam.status}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-xs sm:text-sm text-on-surface-variant">Created</span>
+                <span className="text-xs sm:text-sm font-bold text-on-surface">{new Date(exam.created_at).toLocaleDateString()}</span>
+              </div>
             </div>
           </div>
         </div>
         
         {/* AI Insight Card */}
-        <div className="md:col-span-12 lg:col-span-8 bg-primary rounded-xl p-6 sm:p-8 text-on-primary relative overflow-hidden shadow-xl shadow-primary/20 min-h-[200px]">
+        <div className="lg:col-span-8 bg-primary rounded-xl p-5 sm:p-6 md:p-8 text-on-primary relative overflow-hidden shadow-xl shadow-primary/20 min-h-[180px] sm:min-h-[200px]">
           <div className="relative z-10 h-full flex flex-col justify-between">
             <div>
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-2 mb-3 sm:mb-4">
                 <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-                <h3 className="text-[10px] font-bold uppercase tracking-widest text-primary-fixed-dim font-headline">AI Summary</h3>
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-primary-fixed-dim font-headline">Evaluation Summary</h3>
               </div>
-              <p className="text-base sm:text-xl font-medium leading-relaxed max-w-2xl text-on-primary font-body">
-                "Elena demonstrates exceptional conceptual clarity in algorithm design. Her responses show a sophisticated understanding of time complexity."
+              <p className="text-sm sm:text-base md:text-xl font-medium leading-relaxed max-w-2xl text-on-primary font-body">
+                {exam.status === 'completed' 
+                  ? `Evaluation completed for "${exam.title}". ${results.length} student(s) evaluated with AI-powered grading.`
+                  : exam.status === 'failed'
+                  ? `Evaluation failed for "${exam.title}". You can re-try from the Create Exam page.`
+                  : exam.status === 'evaluating'
+                  ? `AI is currently evaluating "${exam.title}". Check back shortly for results.`
+                  : `Exam "${exam.title}" is ready for evaluation. Upload answer sheets to begin.`
+                }
               </p>
             </div>
-            <div className="mt-6 flex flex-wrap gap-2 sm:gap-4">
-              <div className="px-3 py-1 bg-white/10 rounded-full text-[10px] font-bold border border-white/10">Logic: Advanced</div>
-              <div className="px-3 py-1 bg-white/10 rounded-full text-[10px] font-bold border border-white/10">Clarity: High</div>
+            <div className="mt-4 sm:mt-6 flex flex-wrap gap-2 sm:gap-4">
+              <div className="px-3 py-1 bg-white/10 rounded-full text-[10px] font-bold border border-white/10">Subject: {exam.subject}</div>
+              <div className="px-3 py-1 bg-white/10 rounded-full text-[10px] font-bold border border-white/10">Max: {exam.total_marks} marks</div>
+              {results.length > 0 && (
+                <div className="px-3 py-1 bg-white/10 rounded-full text-[10px] font-bold border border-white/10">Students: {results.length}</div>
+              )}
             </div>
           </div>
           <div className="absolute -right-10 -bottom-10 opacity-20 pointer-events-none">
-            <span className="material-symbols-outlined text-[150px] sm:text-[200px]" style={{ fontVariationSettings: "'wght' 100" }}>psychology</span>
+            <span className="material-symbols-outlined text-[100px] sm:text-[150px] md:text-[200px]" style={{ fontVariationSettings: "'wght' 100" }}>psychology</span>
           </div>
         </div>
       </div>
 
-      {/* Breakdown */}
-      <div className="space-y-6">
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight mb-6 sm:mb-8 font-headline text-on-surface">Assessment Breakdown</h2>
+      {/* Results Table */}
+      <div className="space-y-4 sm:space-y-6">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight mb-4 sm:mb-6 md:mb-8 font-headline text-on-surface">
+          {results.length > 0 ? 'Student Results' : 'Assessment Details'}
+        </h2>
         
-        {/* Questions */}
-        {[
-          { id: '01', title: 'Data Structures & Logic', q: 'Explain the trade-offs between an Array-based list and a Linked List...', a: 'Array lists offer O(1) access but O(n) insertion if resizing is needed...', score: '20/20' },
-          { id: '02', title: 'Algorithms', q: 'Provide a pseudo-code implementation of a recursive Binary Search.', a: 'function search(arr, target, low, high) { ... }', score: '18/20' }
-        ].map((item) => (
-          <div key={item.id} className="bg-surface-container-lowest rounded-xl overflow-hidden atmospheric-shadow border border-outline-variant/10 group">
-            <div className="flex flex-col md:flex-row">
-              <div className="p-6 sm:p-8 md:w-2/3 border-r border-outline-variant/10">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="w-8 h-8 rounded-full bg-on-surface text-surface flex items-center justify-center text-xs font-bold font-headline">{item.id}</span>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-outline">{item.title}</span>
-                </div>
-                <h4 className="text-base sm:text-lg font-bold mb-4 text-on-surface font-headline leading-snug">{item.q}</h4>
-                <div className="p-4 bg-surface-container-low rounded-lg italic text-on-surface-variant text-xs sm:text-sm leading-relaxed border-l-4 border-primary/20 font-body">
-                  "{item.a}"
-                </div>
-              </div>
-              <div className="p-6 sm:p-8 md:w-1/3 bg-surface-container-low/30 flex flex-col justify-center">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-[10px] font-bold text-outline uppercase tracking-widest">Score</span>
-                  <span className="text-xl sm:text-2xl font-black text-primary font-headline">{item.score}</span>
-                </div>
-                <div className="p-4 bg-surface-container-lowest rounded-lg border border-outline-variant/20">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="material-symbols-outlined text-secondary text-sm">auto_awesome</span>
-                    <span className="text-[10px] font-bold text-on-surface font-headline">AI Feedback</span>
-                  </div>
-                  <p className="text-[10px] sm:text-xs leading-relaxed text-on-surface-variant">Perfect identification of Big O notation and memory overhead.</p>
-                </div>
-              </div>
+        {resultsLoading ? (
+          <div className="flex justify-center py-12 sm:py-16">
+            <Spinner size="lg" />
+          </div>
+        ) : results.length > 0 ? (
+          <div className="bg-white rounded-xl overflow-hidden atmospheric-shadow border border-outline-variant/10">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[450px]">
+                <thead>
+                  <tr className="bg-surface-container-low/50 text-[10px] uppercase tracking-widest font-bold text-outline">
+                    <th className="px-3 sm:px-6 py-3 sm:py-3.5">Student</th>
+                    <th className="px-3 sm:px-6 py-3 sm:py-3.5">Marks</th>
+                    <th className="px-3 sm:px-6 py-3 sm:py-3.5 hidden sm:table-cell">Feedback</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-outline-variant/10">
+                  {results.map((result, idx) => (
+                    <tr key={result.id || idx} className="hover:bg-surface-container-low/50 transition-colors">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[10px] sm:text-xs flex-shrink-0">
+                            {(result.studentName || 'S')[0]}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-xs sm:text-sm truncate">{result.studentName || 'Student'}</p>
+                            <p className="text-[10px] text-outline">{result.rollNumber || ''}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
+                        <span className="text-sm sm:text-lg font-black text-primary">{result.marksAwarded}</span>
+                        <span className="text-[10px] sm:text-sm text-outline">/{result.maxMarks || exam.total_marks}</span>
+                      </td>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-on-surface-variant max-w-xs truncate hidden sm:table-cell">{result.feedback || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
-        ))}
+        ) : (
+          <div className="bg-surface-container-lowest rounded-xl p-8 sm:p-12 text-center atmospheric-shadow border border-outline-variant/10">
+            <span className="material-symbols-outlined text-outline text-4xl mb-3 block">assignment</span>
+            <p className="text-sm text-on-surface-variant mb-2">No results available yet</p>
+            <p className="text-xs text-outline">
+              {exam.status === 'pending' 
+                ? 'Upload answer sheets from the Create Exam page to start evaluation.'
+                : exam.status === 'failed'
+                ? 'The evaluation failed. Please try again.'
+                : 'Results will appear here once evaluation is complete.'}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

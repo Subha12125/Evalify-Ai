@@ -69,6 +69,18 @@ async function register(req, res, next) {
     logger.info(`User registered: ${email}`);
     res.status(201).json({ user, token });
   } catch (err) {
+    logger.error('Registration error:', { message: err.message, code: err.code, details: err.details, hint: err.hint });
+    
+    // Return more specific error messages
+    if (err.code === '23505') {
+      return res.status(409).json({ error: 'Email already registered', message: 'This email address is already in use.' });
+    }
+    if (err.code === '42P01') {
+      return res.status(500).json({ error: 'Database table not found', message: 'The users table does not exist. Run database migrations.' });
+    }
+    if (err.message) {
+      return res.status(500).json({ error: 'Registration failed', message: err.message });
+    }
     next(err);
   }
 }

@@ -32,7 +32,12 @@ const Landing = () => {
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl border-b border-outline-variant/10 px-4 sm:px-6 py-1 flex justify-between items-center">
         <div className="flex items-center">
-          <img src={evalifyLogo} alt="Evalify AI Logo" className="w-20 h-20 sm:w-30 sm:h-30 object-contain" />
+          {/* <img src={evalifyLogo} alt="Evalify AI Logo" className="w-20 h-20 sm:w-30 sm:h-30 object-contain" /> */}
+          <img 
+            src={evalifyLogo} 
+            alt="Evalify AI Logo" 
+            className="h-8 sm:h-10 md:h-12 w-auto object-contain" 
+          />
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
           <button onClick={() => navigate('/login')} className="text-xs sm:text-sm font-bold text-on-surface-variant hover:text-primary transition-colors px-2 py-1">Sign In</button>

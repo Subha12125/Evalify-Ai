@@ -118,11 +118,18 @@ const EvaluationService = {
       logger.info(`Evaluating ${file.originalname}: subject=${exam.subject}, totalMarks=${exam.total_marks}, rubricLength=${exam.rubric?.length || 0}, questionsLength=${(exam.questions || []).length}`);
 
       // Call Gemini
+      logger.info(`Calling Gemini API with ${images.length} image(s)...`);
       const rawResponse = await GeminiService.evaluate(prompt, images);
+      logger.info(`Received response from Gemini (${rawResponse.length} chars)`);
+      
+      // Log response preview
+      logger.info(`Response preview: ${rawResponse.substring(0, 300)}`);
+
       const parsed = parseEvaluationResponse(rawResponse);
 
       if (!parsed.success) {
-        throw new Error(parsed.error);
+        logger.error(`Failed to parse response for ${file.originalname}: ${parsed.error}`);
+        throw new Error(`Response parsing failed: ${parsed.error}`);
       }
 
       // Store result

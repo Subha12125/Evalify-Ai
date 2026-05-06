@@ -115,7 +115,9 @@ const EvaluationService = {
         rubric: exam.rubric,
       });
 
-      // Call Claude
+      logger.info(`Evaluating ${file.originalname}: subject=${exam.subject}, totalMarks=${exam.total_marks}, rubricLength=${exam.rubric?.length || 0}, questionsLength=${(exam.questions || []).length}`);
+
+      // Call Gemini
       const rawResponse = await GeminiService.evaluate(prompt, images);
       const parsed = parseEvaluationResponse(rawResponse);
 
@@ -151,10 +153,18 @@ const EvaluationService = {
         resultId: result.id,
       };
     } catch (err) {
+      logger.error(`Evaluation error for ${file.originalname}`, {
+        error: err.message,
+        studentName: studentInfo.name,
+        rollNumber: studentInfo.rollNumber,
+        examId: exam.id,
+        stack: err.stack,
+      });
+
       await EvaluationModel.updateWithResults(evaluation.id, {
         results: null,
         totalMarks: 0,
-        feedback: err.message,
+        feedback: `Error: ${err.message}`,
         status: 'failed',
       });
       throw err;

@@ -171,18 +171,19 @@ const Results = () => {
                         <th className="px-3 sm:px-8 py-3 sm:py-4">Student</th>
                         <th className="px-3 sm:px-8 py-3 sm:py-4 hidden sm:table-cell">Roll No</th>
                         <th className="px-3 sm:px-8 py-3 sm:py-4">Score</th>
-                        <th className="px-3 sm:px-8 py-3 sm:py-4">Pct</th>
+                        <th className="px-3 sm:px-8 py-3 sm:py-4">Status</th>
                         <th className="px-3 sm:px-8 py-3 sm:py-4 hidden md:table-cell">Feedback</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-outline-variant/10">
                       {results.map((result, idx) => {
-                        const pct = maxMarks > 0 ? Math.round((result.marksAwarded / maxMarks) * 100) : 0;
+                        const pct = result.maxMarks > 0 ? Math.round((result.marksAwarded / result.maxMarks) * 100) : 0;
+                        const isFailed = result.status === 'failed';
                         return (
-                          <tr key={result.id || idx} className="hover:bg-surface-container-low/50 transition-colors">
+                          <tr key={result.id || idx} className={`${isFailed ? 'bg-red-50/30 hover:bg-red-50/60' : 'hover:bg-surface-container-low/50'} transition-colors`}>
                             <td className="px-3 sm:px-8 py-3 sm:py-5">
                               <div className="flex items-center gap-2 sm:gap-3">
-                                <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[10px] sm:text-xs flex-shrink-0">
+                                <div className={`w-7 h-7 sm:w-9 sm:h-9 rounded-full ${isFailed ? 'bg-red-100 text-red-600' : 'bg-primary/10 text-primary'} flex items-center justify-center font-bold text-[10px] sm:text-xs flex-shrink-0`}>
                                   {(result.studentName || 'S')[0]}
                                 </div>
                                 <div className="min-w-0">
@@ -193,19 +194,32 @@ const Results = () => {
                             </td>
                             <td className="px-3 sm:px-8 py-3 sm:py-5 text-sm text-on-surface-variant font-medium hidden sm:table-cell">{result.rollNumber || '—'}</td>
                             <td className="px-3 sm:px-8 py-3 sm:py-5">
-                              <span className="text-sm sm:text-lg font-black text-primary">{result.marksAwarded}</span>
-                              <span className="text-[10px] sm:text-sm text-outline">/{result.maxMarks || maxMarks}</span>
+                              {isFailed ? (
+                                <span className="text-sm sm:text-lg font-black text-red-600">—</span>
+                              ) : (
+                                <>
+                                  <span className="text-sm sm:text-lg font-black text-primary">{result.marksAwarded}</span>
+                                  <span className="text-[10px] sm:text-sm text-outline">/{result.maxMarks || maxMarks}</span>
+                                </>
+                              )}
                             </td>
                             <td className="px-3 sm:px-8 py-3 sm:py-5">
-                              <div className="flex items-center gap-1.5 sm:gap-2">
-                                <div className="w-12 sm:w-20 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
-                                  <div 
-                                    className={`h-full rounded-full ${pct >= 70 ? 'bg-emerald-500' : pct >= 40 ? 'bg-amber-500' : 'bg-red-500'}`}
-                                    style={{ width: `${pct}%` }}
-                                  />
+                              {isFailed ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase tracking-widest">
+                                  <span className="w-1.5 h-1.5 bg-red-600 rounded-full inline-block" />
+                                  Failed
+                                </span>
+                              ) : (
+                                <div className="flex items-center gap-1.5 sm:gap-2">
+                                  <div className="w-12 sm:w-20 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+                                    <div 
+                                      className={`h-full rounded-full ${pct >= 70 ? 'bg-emerald-500' : pct >= 40 ? 'bg-amber-500' : 'bg-red-500'}`}
+                                      style={{ width: `${pct}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-[10px] sm:text-xs font-bold text-on-surface">{pct}%</span>
                                 </div>
-                                <span className="text-[10px] sm:text-xs font-bold text-on-surface">{pct}%</span>
-                              </div>
+                              )}
                             </td>
                             <td className="px-3 sm:px-8 py-3 sm:py-5 text-xs text-on-surface-variant max-w-[200px] truncate hidden md:table-cell">{result.feedback || '—'}</td>
                           </tr>

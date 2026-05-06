@@ -17,6 +17,23 @@ const Dashboard = () => {
     fetchQuota();
   }, [fetchExams, fetchQuota]);
 
+  // Center the dashboard content on mount
+  useEffect(() => {
+    setTimeout(() => {
+      const mainContent = document.querySelector('main');
+      if (mainContent) {
+        const contentHeight = mainContent.offsetHeight;
+        const windowHeight = window.innerHeight;
+        const scrollTo = Math.max(0, (contentHeight - windowHeight) / 2);
+        window.scrollTo({
+          top: scrollTo,
+          left: 0,
+          behavior: 'smooth'
+        });
+      }
+    }, 100);
+  }, []);
+
   // Compute real stats from exams data
   const totalExams = exams.length;
   const completedExams = exams.filter(e => e.status === 'completed').length;

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../hooks/useAuth';
+import evalifyLogo from '../assets/Evalify ai.png';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -53,9 +54,7 @@ const Login = () => {
 
       <main className="w-full max-w-md px-6 z-10">
         <div className="flex flex-col items-center mb-10">
-          <div className="w-14 h-14 bg-gradient-to-br from-primary to-primary-container rounded-xl flex items-center justify-center mb-6 ai-glow">
-            <span className="material-symbols-outlined text-white text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-          </div>
+          <img src={evalifyLogo} alt="Evalify AI Logo" className="w-32 h-32 mb-6 object-contain drop-shadow-lg" />
           <h1 className="text-3xl font-extrabold tracking-tight text-on-surface mb-2 font-headline">Evalify AI</h1>
           <p className="text-on-surface-variant font-medium text-sm">Empowering the Academic Edge</p>
         </div>

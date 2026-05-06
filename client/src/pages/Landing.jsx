@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import { useToast } from '../context/ToastContext';
 import api from '../services/api';
+import evalifyLogo from '../assets/Evalify ai.png';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -29,12 +30,9 @@ const Landing = () => {
   return (
     <div className="min-h-screen bg-background text-on-surface overflow-x-hidden">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl border-b border-outline-variant/10 px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-xl flex items-center justify-center ai-glow">
-            <span className="material-symbols-outlined text-white text-xl sm:text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-          </div>
-          <span className="text-lg sm:text-xl font-black font-headline tracking-tight">Evalify AI</span>
+      <nav className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl border-b border-outline-variant/10 px-4 sm:px-6 py-1 flex justify-between items-center">
+        <div className="flex items-center">
+          <img src={evalifyLogo} alt="Evalify AI Logo" className="w-20 h-20 sm:w-30 sm:h-30 object-contain" />
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
           <button onClick={() => navigate('/login')} className="text-xs sm:text-sm font-bold text-on-surface-variant hover:text-primary transition-colors px-2 py-1">Sign In</button>
@@ -43,7 +41,7 @@ const Landing = () => {
       </nav>
 
       {/* Hero Section */}
-      <header className="relative pt-24 sm:pt-32 pb-12 sm:pb-20 px-4 sm:px-6 flex flex-col items-center text-center">
+      <header className="relative pt-40 sm:pt-56 pb-12 sm:pb-20 px-4 sm:px-6 flex flex-col items-center text-center">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[400px] sm:h-[600px] -z-10 opacity-30">
           <div className="absolute top-0 left-1/4 w-[250px] sm:w-[500px] h-[250px] sm:h-[500px] bg-primary/20 rounded-full blur-[80px] sm:blur-[120px] animate-pulse" />
           <div className="absolute top-1/4 right-1/4 w-[200px] sm:w-[400px] h-[200px] sm:h-[400px] bg-secondary/20 rounded-full blur-[60px] sm:blur-[100px] animate-pulse delay-700" />
@@ -117,10 +115,7 @@ const Landing = () => {
       {/* Footer */}
       <footer className="py-12 sm:py-20 px-4 sm:px-6 border-t border-outline-variant/10 text-center">
         <div className="flex items-center justify-center gap-2 mb-6 sm:mb-8">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="material-symbols-outlined text-white text-xl">auto_awesome</span>
-          </div>
-          <span className="text-lg font-black font-headline tracking-tight">Evalify AI</span>
+          <img src={evalifyLogo} alt="Evalify AI Logo" className="w-40 h-40 object-contain drop-shadow-lg" />
         </div>
         <p className="text-outline text-xs uppercase tracking-widest font-black">Empowering the academic edge.</p>
       </footer>

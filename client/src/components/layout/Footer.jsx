@@ -1,4 +1,5 @@
 import React from 'react';
+import evalifyLogo from '../../assets/Evalify ai.png';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -6,10 +7,8 @@ const Footer = () => {
   return (
     <footer className="w-full py-6 sm:py-8 px-4 sm:px-8 border-t border-outline-variant/10 bg-white/50 backdrop-blur-md">
       <div className="flex flex-col items-center gap-4 sm:gap-6 md:flex-row md:justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="material-symbols-outlined text-white text-xl">auto_awesome</span>
-          </div>
+        <div className="flex items-center gap-3">
+          <img src={evalifyLogo} alt="Evalify AI Logo" className="w-10 h-10 object-contain" />
           <span className="font-headline font-black text-on-surface tracking-tight">Evalify AI</span>
         </div>
         

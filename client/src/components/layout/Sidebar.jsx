@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import evalifyLogo from '../../assets/Evalify ai.png';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
@@ -18,11 +19,8 @@ const Sidebar = ({ isOpen, onClose }) => {
     <aside className={`fixed top-0 left-0 h-full w-64 bg-surface-container-lowest z-50 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
       <div className="p-6 flex flex-col h-full">
         {/* Logo */}
-        <div className="flex items-center gap-3 mb-10 px-2">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center ai-glow shadow-lg shadow-primary/20">
-            <span className="material-symbols-outlined text-white text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-          </div>
-          <span className="text-xl font-black text-on-surface tracking-tighter font-headline">Evalify AI</span>
+        <div className="flex items-center justify-center mb-14 px-2">
+          <img src={evalifyLogo} alt="Evalify AI Logo" className="w-40 h-40 object-contain drop-shadow-lg" />
         </div>
 
         {/* Create Exam CTA */}

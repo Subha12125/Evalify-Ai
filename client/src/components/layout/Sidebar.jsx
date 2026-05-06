@@ -17,16 +17,16 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   return (
     <aside className={`fixed top-0 left-0 h-full w-64 bg-surface-container-lowest z-50 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
-      <div className="p-6 flex flex-col h-full">
+      <div className="p-6 flex flex-col h-full overflow-y-auto">
         {/* Logo */}
-        <div className="flex items-center justify-center mb-14 px-2">
-          <img src={evalifyLogo} alt="Evalify AI Logo" className="w-40 h-40 object-contain drop-shadow-lg" />
+        <div className="flex items-center justify-center mb-4 px-2">
+          <img src={evalifyLogo} alt="Evalify AI Logo" className="w-28 h-auto object-contain drop-shadow-lg" />
         </div>
 
         {/* Create Exam CTA */}
         <button
           onClick={() => { navigate('/create-exam'); onClose(); }}
-          className="mb-8 w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-gradient-to-r from-primary to-primary-container text-white rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+          className="mb-6 w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-primary to-primary-container text-white rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
         >
           <span className="material-symbols-outlined text-lg">add_circle</span>
           New Evaluation
@@ -48,7 +48,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         </nav>
 
         {/* Bottom Section */}
-        <div className="mt-auto space-y-4 pt-6 border-t border-outline-variant/10">
+        <div className="mt-auto space-y-3 pt-4 border-t border-outline-variant/10">
           <NavLink
             to="/pricing"
             onClick={onClose}

@@ -4,7 +4,7 @@ const { GEMINI_API_KEY } = require('../config/env');
 
 const MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-lite'];
 const MAX_RETRIES = 5;
-const RETRY_DELAY_MS = 90000; // 90 seconds
+const RETRY_DELAY_MS = 60000; // 60 seconds
 const CALL_TIMEOUT_MS = 120000; // 120 seconds
 
 function sleep(ms) {

@@ -12,7 +12,7 @@
     "test": "node --require ./tests/setup.js --test"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
+    "@google/genai": "^1.0.0",
     "@supabase/supabase-js": "^2.49.4",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",

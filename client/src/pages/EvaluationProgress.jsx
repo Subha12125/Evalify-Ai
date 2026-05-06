@@ -26,7 +26,7 @@ const EvaluationProgress = () => {
 
     const poll = async () => {
       const data = await fetchStatus(targetExamId);
-      if (data?.counts?.completed === data?.total || data?.counts?.failed === data?.total) {
+      if (data?.total && ((data.counts?.completed || 0) + (data.counts?.failed || 0)) >= data.total) {
         setPolling(false);
       }
     };

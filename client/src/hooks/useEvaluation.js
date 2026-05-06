@@ -47,7 +47,7 @@ export const useEvaluation = () => {
       const data = await evaluationService.getEvaluationStatus(examId);
       if (data.counts) {
         const total = data.total || 1;
-        const completed = data.counts.completed || 0;
+        const completed = (data.counts.completed || 0) + (data.counts.failed || 0);
         setProgress(Math.round((completed / total) * 100));
       }
       setEvaluations(data.evaluations || []);

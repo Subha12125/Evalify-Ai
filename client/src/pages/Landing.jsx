@@ -15,7 +15,7 @@ const Landing = () => {
       try {
         const response = await api.get('/health');
         if (response.data.status === 'ok') {
-          setBackendStatus('Connected');
+          setBackendStatus('Live');
         } else {
           setBackendStatus('Error');
         }
@@ -60,8 +60,8 @@ const Landing = () => {
           </div>
           <div className="hidden sm:block w-px h-3 bg-primary/20 mx-1" />
           <div className="flex items-center gap-1.5">
-            <div className={`w-1.5 h-1.5 rounded-full ${backendStatus === 'Connected' ? 'bg-emerald-500' : backendStatus === 'Offline' ? 'bg-red-500' : 'bg-amber-500'} animate-pulse`} />
-            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Backend: {backendStatus}</span>
+            <div className={`w-1.5 h-1.5 rounded-full ${backendStatus === 'Live' ? 'bg-emerald-500' : backendStatus === 'Offline' ? 'bg-red-500' : 'bg-amber-500'} animate-pulse`} />
+            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-on-surface-variant"> {backendStatus}</span>
           </div>
         </div>
 
